@@ -1,4 +1,5 @@
-cml-definitions/
-cml-definitions/image-definitions/
-cml-definitions/node-definitions/
+cml-definitions/virl-base-images/*
+cml-definitions/node-definitions/*
+!cml-definitions/virl-base-images/.gitkeep
+!cml-definitions/node-definitions/.gitkeep
 xrd/xrd-control-plane-container-x86*.tgz

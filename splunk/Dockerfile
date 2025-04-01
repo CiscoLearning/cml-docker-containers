@@ -1,0 +1,1 @@
+FROM splunk/splunk:latest
