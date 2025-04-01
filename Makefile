@@ -12,6 +12,7 @@ clean:
 	done
 	cd BUILD/refplat-images-docker_all/var/lib/libvirt/images/node-definitions && find . -type f -not -name ".gitkeep" -delete 
 	cd BUILD/refplat-images-docker_all/var/lib/libvirt/images/virl-base-images && find . -type d -exec rm -rf {} \;
+	-rm BUILD/*.deb
 
 .PHONY: all clean $(SUBDIRS)
 

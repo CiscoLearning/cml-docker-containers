@@ -7,7 +7,7 @@ include ../templates/definitions.mk
 .PHONY: clean
 clean:
 	rm -rf $(DNT)
-	docker image ls --format "{{ .ID }}" $(NAME) | uniq | xargs docker image rm -f
+	-docker image ls --format "{{ .ID }}" $(NAME) | uniq | xargs docker image rm -f
 
 .PHONY: build
 build: Dockerfile $(DNT)
