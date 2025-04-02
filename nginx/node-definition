@@ -35,7 +35,7 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "nginx:latest",
+              "image": "{{IMAGENAMETAG}}",
               "env": [
                 "SOME_VAR=1",
                 "SOME_OTHER_VAR=nginx runs here"
@@ -55,6 +55,7 @@ configuration:
           # Insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
           # keep the next line to indicate that the machine is ready
           echo "READY" >/dev/console
           exit 0

@@ -17,7 +17,7 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "xrd:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/first-boot.cfg,target=/etc/xrd/first-boot.cfg"
               ],

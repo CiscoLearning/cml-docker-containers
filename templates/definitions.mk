@@ -7,7 +7,7 @@ DNT  := $(DEST)/$(NTAG)
 
 .PHONY: definitions
 definitions: $(DNT)
-	sha256=`docker image inspect -f '{{ index .Id }}' $(NAME):$(TAG) | cut -d':' -f2)` && \
+	sha256=`docker image inspect -f '{{ index .Id }}' $(IMAGENAMETAG) | cut -d':' -f2)` && \
   date=`date +"%Y%m%d"` && \
 	cat ../templates/image-definition | sed \
 		-e 's/{{DESCR}}/$(DESCR)/g' \
@@ -18,7 +18,9 @@ definitions: $(DNT)
 		-e "s/{{SHA256}}/$$sha256/g" \
 	  -e "s/{{DATE}}/$$date/" \
 	>$(DNT)/$(NTAG).yaml
-	cp node-definition $(NDEF)/$(NAME).yaml
+	cat node-definition | sed \
+		-re 's#("image": )"\{\{IMAGENAMETAG\}\}"#\1"$(IMAGENAMETAG)"#g' \
+	> $(NDEF)/$(NAME).yaml
 
 $(DNT):
 	mkdir -p $@

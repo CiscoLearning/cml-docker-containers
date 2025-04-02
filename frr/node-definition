@@ -17,7 +17,7 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "frr:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/config/boot.sh",
                 "type=bind,source=cfg/node.cfg,target=/config/node.cfg"
@@ -86,12 +86,16 @@ configuration:
       - name: boot.sh
         editable: true
         content: |
+          # Enable specific routing protocols here:
+          #
           sed -r -e 's/^(ospfd=)no$/\1yes/' -i /etc/frr/daemons
           # sed -r -e 's/^(bgpd=)no$/\1yes/' -i /etc/frr/daemons
           # sed -r -e 's/^(eigrpd=)no$/\1yes/' -i /etc/frr/daemons
+          #
           # insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
           # keep the next line to indicate that the machine is ready
           echo "READY" >/dev/console
           exit 0
@@ -150,7 +154,7 @@ inherited:
     data_volume: false
     boot_disk_size: false
 general:
-  description: FreeRangeRouting
+  description: Free Range Routing (frr)
   nature: router
   read_only: true
 schema_version: 0.0.1
@@ -170,7 +174,7 @@ pyats:
   config_extract_command: show run
 ui:
   description: |2-
-    Free Range Routing frr
+    Free Range Routing (frr)
   group: Others
   icon: router
   label: FRR

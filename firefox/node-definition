@@ -23,7 +23,7 @@ inherited:
     boot_disk_size: false
 general:
   nature: host
-  description: Firefox (docker)
+  description: Firefox (Docker)
   read_only: false
 schema_version: 0.0.1
 configuration:
@@ -37,7 +37,7 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "firefox:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ],

@@ -1,2 +1,2 @@
-FROM thousandeyes/enterprise-agent:latest-agent
+FROM scratch
 

@@ -1,4 +1,5 @@
 xrd/xrd-control-plane-container-x86*.tgz
+thousandeyes/te-ea.tgz
 BUILD/*.deb
 !BUILD/refplat-images-docker_all/var/lib/libvirt/images/node-definitions/.gitkeep
 !BUILD/refplat-images-docker_all/var/lib/libvirt/images/virl-base-images/.gitkeep

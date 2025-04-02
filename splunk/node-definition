@@ -36,13 +36,9 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "splunk:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
-              ],
-              "env": [
-                "SPLUNK_START_ARGS=--accept-license",
-                "SPLUNK_PASSWORD=Cisc0123#"
               ]
             },
             "privileged": true,
@@ -57,6 +53,11 @@ configuration:
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
           exit 0
+      - name: environment
+        editable: true
+        content: |-
+          SPLUNK_START_ARGS=--accept-license
+          SPLUNK_PASSWORD=Cisc0123#
 device:
   interfaces:
     physical:

@@ -1,3 +1,4 @@
-NAME := chrome
-VERSION := 134.0.6998.165-1
-DESCR:=Google Chrome Stable
+VERSION      := 135.0.7049.52-1
+NAME         := chrome
+IMAGENAMETAG := $(NAME):$(VERSION)
+DESCR        :=Google Chrome Stable

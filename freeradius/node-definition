@@ -17,11 +17,11 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "radius:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh",
-                "type=bind,source=cfg/clients.conf,target=/etc/freeradius/3.0/clients.conf"
-                "type=bind,source=cfg/radiusd.conf,target=/etc/freeradius/3.0/radiusd.conf"
+                "type=bind,source=cfg/clients.conf,target=/etc/freeradius/3.0/clients.conf",
+                "type=bind,source=cfg/radiusd.conf,target=/etc/freeradius/3.0/radiusd.conf",
                 "type=bind,source=cfg/users,target=/etc/freeradius/3.0/mods-config/files/authorize"
               ]
             },
@@ -58,11 +58,12 @@ configuration:
       - name: boot.sh
         editable: true
         content: |
-          # keep the next line to indicate that the machine is ready
-          echo "READY" >/dev/console
           # insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
+          # keep the next line to indicate that the machine is ready
+          echo "READY" >/dev/console
           exit 0
 device:
   interfaces:

@@ -1,3 +1,4 @@
-NAME := netflow
-DESCR := netflow flow-tools
-VERSION := 0.68
+VERSION      := 0.68
+NAME         := netflow
+IMAGENAMETAG := $(NAME):$(VERSION)
+DESCR        := netflow flow-tools

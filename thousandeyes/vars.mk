@@ -1,3 +1,4 @@
-NAME := te-ea
-DESCR := Thousandeyes Enterprise Agent
-VERSION := 1.210.0
+VERSION      := 1.210.0
+NAME         := thousandeyes-ea
+IMAGENAMETAG := thousandeyes/enterprise-agent:latest-agent
+DESCR        := Thousandeyes Enterprise Agent

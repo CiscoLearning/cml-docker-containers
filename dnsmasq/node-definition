@@ -17,16 +17,22 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "dnsmasq:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh",
-                "type=bind,source=cfg/dnsmasq.conf,target=/etc/dnsmasq.conf"
+                "type=bind,source=cfg/dnsmasq.conf,target=/etc/dnsmasq.conf",
+                "type=bind,source=cfg/hosts,target=/etc/banner_add_hosts"
               ]
             },
             "shell": "/bin/bash",
             "day0cmd": [ "/bin/bash", "/boot.sh" ],
             "busybox": true
           }
+      - name: hosts
+        editable: true
+        content: |
+          # see the addn-hosts config flag in dnsmasq.conf
+          192.168.255.10 myname
       - name: dnsmasq.conf
         editable: true
         content: |
@@ -171,6 +177,7 @@ configuration:
           # or if you want it to read another file, as well as /etc/hosts, use
           # this.
           #addn-hosts=/etc/banner_add_hosts
+          addn-hosts=/etc/banner_add_hosts
           
           # Set this (and domain: see below) if you want to have a domain
           # automatically added to simple names in a hosts-file.
@@ -722,11 +729,12 @@ configuration:
       - name: boot.sh
         editable: true
         content: |
-          # keep the next line to indicate that the machine is ready
-          echo "READY" >/dev/console
           # insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
+          # keep the next line to indicate that the machine is ready
+          echo "READY" >/dev/console
           exit 0
 device:
   interfaces:

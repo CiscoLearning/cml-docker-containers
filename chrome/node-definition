@@ -37,7 +37,7 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "chrome:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ],

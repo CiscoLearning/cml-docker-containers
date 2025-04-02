@@ -1,1 +1,4 @@
+# https://wiki.freeradius.org/guide/Basic-configuration-HOWTO
+# https://github.com/FreeRADIUS/freeradius-server/blob/v3.0.x/raddb/mods-config/files/authorize
+
 testuser Cleartext-Password := "testpassword"

@@ -1,3 +1,4 @@
-NAME := nginx
-DESCR := Ngninx webserver
-VERSION := 3.38
+VERSION      := 3.38
+NAME         := nginx
+IMAGENAMETAG := $(NAME):$(VERSION)
+DESCR        := Ngninx webserver

@@ -17,7 +17,7 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "net-tools:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ]
@@ -49,6 +49,7 @@ configuration:
           # insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
           # keep the next line to indicate that the machine is ready
           echo "READY" >/dev/console
           exit 0

@@ -6,9 +6,14 @@ configuration:
     volume_name: cfg
     media_type: raw
     files:
+      - name: boot.sh
+        editable: false
+        content: |-
+          (sleep 2 && (tail -f /var/log/agent/te-agent.log | tee -a /dev/console) &) &
       - name: environment
         editable: true
         content: |-
+          # https://docs.thousandeyes.com/product-documentation/global-vantage-points/enterprise-agents/installing/docker-agent-config-options
           TEAGENT_ACCOUNT_TOKEN=your-token-goes-here
           TEAGENT_INET=4
       - name: config.json
@@ -16,7 +21,7 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "te-ea:latest",
+              "image": "{{IMAGENAMETAG}}",
               "caps": [
                 "AUDIT_WRITE",
                 "CHOWN",
@@ -39,9 +44,13 @@ configuration:
               "misc_args": [
                 "--memory-swap=2g",
                 "--shm-size=512m"
+              ],
+              "mounts": [
+                "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ]
             },
             "shell": "/bin/bash",
+            "day0cmd": [ "/bin/bash", "/boot.sh" ],
             "busybox": true
           }
 device:
@@ -80,11 +89,12 @@ sim:
 boot:
   timeout: 3600
   completed:
-    - 'Starting te-agent...'
+    - "ThousandEyes Agent starting up"
+    - "READY"
 ui:
   description: Cisco ThousandEyes Enterprise Agent
   group: Cisco
   icon: server
   label: ThousandEyes Agent
-  label_prefix: te-
+  label_prefix: te-agent-
   visible: true

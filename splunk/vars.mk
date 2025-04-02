@@ -1,3 +1,4 @@
-NAME := splunk
-DESCR := Splunk Enterprise
-VERSION := 9.4
+VERSION      := 9.4
+NAME         := splunk
+IMAGENAMETAG := $(NAME):$(VERSION)
+DESCR        := Splunk Enterprise

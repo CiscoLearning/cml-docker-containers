@@ -17,7 +17,7 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "tacplus:latest",
+              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh",
                 "type=bind,source=cfg/tac_plus.conf,target=/etc/tac_plus.conf"
@@ -64,11 +64,12 @@ configuration:
       - name: boot.sh
         editable: true
         content: |
-          # keep the next line to indicate that the machine is ready
-          echo "READY" >/dev/console
           # insert more commands here
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
+          #
+          # keep the next line to indicate that the machine is ready
+          echo "READY" >/dev/console
           exit 0
 device:
   interfaces:
