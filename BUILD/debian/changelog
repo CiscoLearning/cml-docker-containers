@@ -9,6 +9,7 @@ refplat-images-docker (1.5) UNRELEASED; urgency=medium
     /etc/issue at start.
   * updated to Chrome 139.0.7258.127-1 and Firefox 141.0.3~build1
   * updated Thousandeyes to 1.221.0
+  * updated Splunk to 10.0.0 (also needed new SPLUNK_GENERAL_TERMS env var)
   * changed name of xrd to ios-xrd-control-plane
   * turned off netflow container
   * some cleanup
