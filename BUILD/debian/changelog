@@ -2,10 +2,10 @@ refplat-images-docker (1.5) UNRELEASED; urgency=medium
 
   * better freeRADIUS container with proper logging and command line
     configuration. E.g. ARGS in the environment file can be used to provide
-    the command line arguments for freeRADIUS. Also uses tini and unbuffered
+    the command line arguments for freeRADIUS. Also uses tini and unbuffer
     (from the expect package) to allow for both colored logging and logging
     into a file in addition to stdout. tini is used for process control.
-  * uses entrypoint for the net-tools container now to allow for displa of
+  * uses entrypoint for the net-tools container now to allow for display of
     /etc/issue at start.
   * updated to Chrome 139.0.7258.127-1 and Firefox 141.0.3~build1
   * updated Thousandeyes to 1.221.0
