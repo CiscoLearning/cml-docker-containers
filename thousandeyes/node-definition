@@ -16,6 +16,7 @@ configuration:
         editable: false
         content: |-
           # (sleep 2 && (tail -f /var/log/agent/te-agent.log | tee -a /dev/console) &) &
+          [ -n "$TEAGENT_HOSTNAME" ] && hostname "$TEAGENT_HOSTNAME"
           (tail -f /var/log/agent/te-agent.log | tee -a /dev/console) &
       - name: environment
         editable: true
@@ -23,6 +24,10 @@ configuration:
           # https://docs.thousandeyes.com/product-documentation/global-vantage-points/enterprise-agents/installing/docker-agent-config-options
           TEAGENT_ACCOUNT_TOKEN=your-token-goes-here
           TEAGENT_INET=4
+          # the following env var is not an official one, if specified, it sets
+          # the hostname of the container (which is then visible in the cloud
+          # dashboard)
+          TEAGENT_HOSTNAME="te-agent-demo"
       - name: config.json
         editable: false
         content: |-

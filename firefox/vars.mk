@@ -1,4 +1,4 @@
-VERSION      := 141.0.3~build1
+VERSION      := 143.0~build1
 NAME         := firefox
 DESCR        := Firefox
 FULLDESC     := $(DESC) $(VERSION)
