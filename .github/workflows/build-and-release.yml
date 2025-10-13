@@ -86,7 +86,7 @@ jobs:
             echo "Cannot determine base version from BUILD/debian/changelog" >&2
             exit 1
           fi
-          ts=$(date -u +%Y%m%d%H)   # UTC timestamp YYYYMMDDHH
+          ts=$(date -u +%Y%m%d%H%M%S)   # UTC timestamp YYYYMMDDHHMMSS
           new="${base}+${ts}"
           datehuman=$(date -u +"%Y-%m-%d %H:%M:%SZ")
           echo "Bumping changelog to ${new}"
@@ -108,9 +108,9 @@ jobs:
         with:
           name: deb-artifacts
           path: |
-            BUILD/*.deb
-            BUILD/*.changes
-            BUILD/*.buildinfo
+            *.deb
+            *.changes
+            *.buildinfo
           retention-days: 10
 
       - name: Create GitHub Release (optional)
