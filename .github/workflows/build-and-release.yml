@@ -1,7 +1,7 @@
 name: Build (sequential) and Release
 
-permissions:
-   contents: write
+# permissions:
+#    contents: write
 
 on:
   push:
@@ -30,14 +30,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Ensure Docker available (fallback)
-        run: |
-          if ! command -v docker >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo systemctl enable --now docker
-          fi
-          docker --version
+      # - name: Ensure Docker available (fallback)
+      #   run: |
+      #     if ! command -v docker >/dev/null 2>&1; then
+      #       sudo apt-get update
+      #       sudo apt-get install -y docker.io
+      #       sudo systemctl enable --now docker
+      #     fi
+      #     docker --version
 
       - name: Discover top-level containers (Dockerfile && not .disabled)
         id: discover
@@ -66,8 +66,8 @@ jobs:
             echo "=== Building: $c ==="
             make -C "$c"
           done < containers.list
-          echo "Contents of BUILD/debian:"
-          ls -lah BUILD/debian || true
+          # echo "Contents of BUILD/debian:"
+          # ls -lah BUILD/debian || true
 
       - name: Install packaging tools
         run: |
@@ -146,7 +146,7 @@ jobs:
           fi
           upload_url=${upload_url%\{*}
           # attach only Debian-related artifacts
-          for f in BUILD/*.deb BUILD/*.changes BUILD/*.buildinfo; do
+          for f in *.deb *.changes *.buildinfo; do
             [ -f "$f" ] || continue
             fname=$(basename "$f")
             echo "Uploading $fname"
