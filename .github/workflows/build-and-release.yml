@@ -64,6 +64,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends devscripts dpkg-dev build-essential fakeroot debhelper
 
       - name: Bump changelog with timestamped version and exact message
+        id: bump
         env:
           DEBFULLNAME: "${{ github.actor }} (GitHub Actions)"
           DEBEMAIL: "${{ github.actor }}@users.noreply.github.com"
@@ -89,6 +90,8 @@ jobs:
           dch -v "$new" "auto-built on github on ${datehuman}"
           echo "Top of BUILD/debian/changelog:"
           sed -n '1,12p' debian/changelog
+          # expose ts as a step output for later steps
+          echo "ts=$ts" >> "$GITHUB_OUTPUT"
 
       - name: Build .deb package
         run: |
@@ -103,6 +106,27 @@ jobs:
             *.deb
             *.changes
             *.buildinfo
+          retention-days: 10
+
+      - name: Pack refplat var/lib subtree as pruned tarball
+        run: |
+          set -euo pipefail
+          src_dir="BUILD/debian/refplat-images-docker"
+          ts="${{ steps.bump.outputs.ts }}"
+          out_tar="BUILD/docker-refplat-images-${ts}.tar.gz"
+          if [ -d "${src_dir}/var/lib" ]; then
+            echo "Creating ${out_tar} containing var/lib/..."
+            (cd "${src_dir}" && tar -czf "../../docker-refplat-images-${ts}.tar.gz" var/lib)
+            ls -lh "${out_tar}" || true
+          else
+            echo "No var/lib subtree found at ${src_dir}/var/lib — skipping tar creation."
+          fi
+
+      - name: Upload pruned refplat images tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: refplat-images-var-lib
+          path: BUILD/docker-refplat-images-*.tar.gz
           retention-days: 10
 
       - name: Create GitHub Release (optional)
@@ -134,8 +158,8 @@ jobs:
             exit 1
           fi
           upload_url=${upload_url%\{*}
-          # attach only Debian-related artifacts
-          for f in *.deb *.changes *.buildinfo; do
+          # attach only Debian-related artifacts + the pruned images tarball
+          for f in *.deb *.changes *.buildinfo docker-refplat-images-*.tar.gz; do
             [ -f "$f" ] || continue
             fname=$(basename "$f")
             echo "Uploading $fname"
