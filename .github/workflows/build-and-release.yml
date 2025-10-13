@@ -113,10 +113,10 @@ jobs:
           set -euo pipefail
           src_dir="BUILD/debian/refplat-images-docker"
           ts="${{ steps.bump.outputs.ts }}"
-          out_tar="BUILD/docker-refplat-images-${ts}.tar.gz"
+          out_tar="docker-refplat-images-${ts}.tar.gz"
           if [ -d "${src_dir}/var/lib" ]; then
             echo "Creating ${out_tar} containing var/lib/..."
-            (cd "${src_dir}" && tar -czf "../../docker-refplat-images-${ts}.tar.gz" var/lib)
+            (cd "${src_dir}" && tar -czf "../../../docker-refplat-images-${ts}.tar.gz" var/lib)
             ls -lh "${out_tar}" || true
           else
             echo "No var/lib subtree found at ${src_dir}/var/lib — skipping tar creation."
@@ -126,7 +126,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: refplat-images-var-lib
-          path: BUILD/docker-refplat-images-*.tar.gz
+          path: docker-refplat-images-*.tar.gz
           retention-days: 10
 
       - name: Create GitHub Release (optional)

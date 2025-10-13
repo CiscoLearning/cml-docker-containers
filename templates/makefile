@@ -19,13 +19,17 @@ clean:
 
 .PHONY: docker
 docker: Dockerfile $(DNT)
-	docker buildx build . -t $(NAME):$(TAG) \
-	--build-arg uid=2000 \
-	--build-arg version=$(VERSION) \
-	$(if $(HTTP_PROXY), --build-arg HTTP_PROXY=$(HTTP_PROXY)) \
-	$(if $(HTTPS_PROXY), --build-arg HTTPS_PROXY=$(HTTPS_PROXY)) \
-	$(if $(NO_PROXY), --build-arg NO_PROXY=$(NO_PROXY))
-	docker save $(NAME):$(TAG) | gzip - >$(DNT)/$(NTAG).tar.gz
+	@if [ -f ./.disabled ]; then \
+		echo "Skipping build in $(CURDIR): .disabled present"; \
+	else \
+		docker buildx build . -t $(NAME):$(TAG) \
+			--build-arg uid=2000 \
+			--build-arg version=$(VERSION) \
+			$(if $(HTTP_PROXY), --build-arg HTTP_PROXY=$(HTTP_PROXY)) \
+			$(if $(HTTPS_PROXY), --build-arg HTTPS_PROXY=$(HTTPS_PROXY)) \
+			$(if $(NO_PROXY), --build-arg NO_PROXY=$(NO_PROXY)); \
+		docker save $(NAME):$(TAG) | gzip - >$(DNT)/$(NTAG).tar.gz; \
+	fi
 
 .PHONY: build
 build: docker definitions

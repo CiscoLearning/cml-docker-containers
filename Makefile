@@ -1,5 +1,5 @@
-# list of subdirectories containing a Dockerfile
-SUBDIRS := $(shell find . -type f -name Dockerfile -exec dirname {} \;)
+# list of subdirectories containing a Dockerfile (skip dirs with .disabled)
+SUBDIRS := $(shell find . -type f -name Dockerfile -exec dirname {} \; | sort -u | while read -r d; do if [ ! -f "$$d/.disabled" ]; then echo "$$d"; fi; done)
 
 all: $(SUBDIRS)
 
