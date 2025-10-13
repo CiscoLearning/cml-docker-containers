@@ -1,7 +1,7 @@
 name: Build (sequential) and Release
 
-# permissions:
-#    contents: write
+permissions:
+   contents: write
 
 on:
   push:
