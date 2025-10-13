@@ -4,26 +4,26 @@ This repository automates building Docker images and the node/image definition f
 
 **Table of contents**
 
-1. [Project overview](#1-project-overview)
-2. [Quickstart](#2-quickstart)
-3. [Dependencies](#3-dependencies)
-4. [How discovery & selection work](#4-how-discovery-selection-work)
-5. [Building (local development)](#5-building-local-development)
-6. [Results (what is produced & where)](#6-results-what-is-produced-where)
-7. [Contributing: adding a new container](#7-contributing-adding-a-new-container)
-8. [CI: GitHub Actions, artifacts & releases](#8-ci-github-actions-artifacts-releases)
-9. [Troubleshooting](#9-troubleshooting)
-10. [Special notes (IOS XRd / Netflow / Splunk)](#10-special-notes-ios-xrd-netflow-splunk)
-11. [Pro tips](#11-pro-tips)
-12. [Appendix: examples & useful commands](#12-appendix-examples-useful-commands)
+- [Project overview](#project-overview)
+- [Quickstart](#quickstart)
+- [Dependencies](#dependencies)
+- [How discovery & selection work](#how-discovery-selection-work)
+- [Building (local development)](#building-local-development)
+- [Results (what is produced & where)](#results-what-is-produced-where)
+- [Contributing: adding a new container](#contributing-adding-a-new-container)
+- [CI: GitHub Actions, artifacts & releases](#ci-github-actions-artifacts-releases)
+- [Troubleshooting](#troubleshooting)
+- [Special nodes (IOS XRd / Netflow / Splunk)](#special-nodes)
+- [Pro tips](#pro-tips)
+- [Appendix: examples & useful commands](#appendix-examples-useful-commands)
 
 ---
 
-## 1. Project overview
+## Project overview
 
-This repository contains automation and templates to build container images, node definitions and image definitions for use with CML (tested for CML 2.9+). Most container specs in this repository pull software from Docker Hub or public resources; a few require additional manual content (see Special notes).
+This repository contains automation and templates to build container images, node definitions and image definitions for use with CML (tested for CML 2.9+). Most container specs in this repository pull software from Docker Hub or public resources; a few require additional manual content (see Special nodes).
 
-## 2. Quickstart
+## Quickstart
 
 Build everything locally:
 
@@ -43,31 +43,31 @@ Inspect generated files and package:
 - Definitions and images: `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...`
 - Debian package: `*.deb`, `*.buildinfo`, `*.changelog`
 
-## 3. Dependencies
+## Dependencies
 
-Recommended environment: Ubuntu / Debian (local VM or developer machine).
+Recommended environment: Ubuntu 24.04 (local VM or developer machine).
 
 Required for building and packaging:
 
 - Docker (engine/CLI)
-- dpkg-dev
-- devscripts
 
 For building the .deb package you also need:
 
+- dpkg-dev
+- devscripts
 - fakeroot
 - debhelper
 - build-essential
 
 If you only need to build images (no Debian package), you only need `make` and Docker.
 
-## 4. How discovery & selection work
+## How discovery & selection work
 
 - Discovery: the build system (and CI) scans top-level subdirectories for a `Dockerfile`. Each such directory is treated as a container specification.
 - Skip / opt-out: to exclude a container from builds (both local and CI), place an empty file named `.disabled` in that container directory (for example: `chrome/.disabled`). The top-level Makefile and per-directory recipes honor this file and will skip building and definition generation, printing a clear message.
 - Output layout: builders and templates create the YAML files and image tarballs under `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...` so the structure matches what CML expects on the server.
 
-## 5. Building (local development)
+## Building (local development)
 
 1. Build a single container:
 
@@ -87,12 +87,12 @@ make
 make deb
 ```
 
-Notes:
+**Notes:**
 
 - Per-container Makefiles usually soft-link to  `../templates/makefile`. Use an existing container (for example `chrome/` or `nginx/`) as a template when adding a new container.
 - If a `.disabled` file exists in a container directory, `make -C <dir>` will skip building that container and print a message.
 
-## 6. Results (what is produced & where)
+## Results (what is produced & where)
 
 - Image tarballs and YAML definitions are placed under:
 
@@ -104,7 +104,7 @@ BUILD/debian/refplat-images-docker/var/lib/libvirt/images/<...>
 
 The generated tree mirrors the CML server layout so files may be copied to `/var/lib/libvirt/images/...` on the server.
 
-## 7. Contributing: Adding a new container
+## Contributing: Adding a new container
 
 Follow these guidelines to add a container that builds locally and in CI.
 
@@ -169,7 +169,7 @@ CI test (manual run)
 gh workflow run build-and-release.yml --ref <your-branch> -f create_release=false
 ```
 
-## 8. CI: GitHub Actions, artifacts & releases
+## CI: GitHub Actions, artifacts & releases
 
 Behavior
 
@@ -198,7 +198,7 @@ gh workflow run build-and-release.yml --ref main -f create_release=true -f relea
 - Actions artifacts are retained for a limited period; this repository configures `retention-days: 10` for uploaded artifacts.
 - Files attached to GitHub Releases persist until manually deleted.
 
-## 9. Troubleshooting
+## Troubleshooting
 
 - **Build not skipped even though `.disabled` exists**: ensure the `.disabled` file is in the container directory (e.g., `chrome/.disabled`) and you are running the updated Makefiles. The repository Makefiles include guards that skip builds and definitions when `.disabled` is present.
 
@@ -208,7 +208,7 @@ gh workflow run build-and-release.yml --ref main -f create_release=true -f relea
 
 - **Artifacts are large**: consider attaching only the `.deb` to Releases for long-term storage or hosting very large artifacts externally.
 
-## 10. Special notes
+## Special nodes
 
 ### IOS XRd
 
@@ -222,13 +222,13 @@ Netflow depends on an older Debian package that is not present in modern distrib
 
 Splunk images are large and disabled by default. Consider keeping Splunk out of automated builds unless required.
 
-## 11. Pro tips
+## Pro tips
 
 - Copy an existing container directory (e.g., `chrome/` or `nginx/`) when creating a new container — it speeds onboarding and avoids missing variables.
 - Keep Docker images small to reduce CI time and storage usage.
 - Use the `gh` CLI to trigger workflows and inspect runs (`gh run list`, `gh run view <id>`).
 
-## 12. Appendix: examples & useful commands
+## Appendix: examples & useful commands
 
 - Example skeleton
 
