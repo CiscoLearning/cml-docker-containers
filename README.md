@@ -43,6 +43,54 @@ As an option, a Debian package can be built which can also be installed on the
 CML server. The package build process can be started via `make deb` and
 requires the aforementioned dev tools and scripts installed.
 
+## Automated Container Builds with GitHub Actions
+
+This repository uses GitHub Actions to automatically build container images and Debian packages whenever you push to the `main` branch, create a version tag, or trigger a build manually.
+
+### How automatic builds work
+
+- **Discovery:** The workflow scans the repository for subdirectories containing a `Dockerfile` and skips any directory that contains a `.disabled` file.
+- **Build:** Each enabled container directory is built sequentially using its `Makefile` (which must output a `.tar.gz` archive under `BUILD/debian/`).
+- **Debian Packaging:** After building containers, the workflow updates `BUILD/debian/changelog` with a timestamped version and builds the main `.deb` package. The `.deb` includes all `.tar.gz` container payloads.
+- **Artifacts and Release:** The workflow uploads only the Debian packaging artifacts (`.deb`, `.changes`, `.buildinfo`) to Actions and optionally creates a GitHub Release that attaches these files for public download.
+
+#### Skipping a container build
+
+To exclude a container from automated builds:
+
+1. Place an empty file named `.disabled` inside the container’s directory.
+2. The workflow will detect `.disabled` and skip building that container entirely.
+
+Example:
+```
+chrome/
+  Dockerfile
+  .disabled    <-- causes 'chrome' to be skipped by auto-builds
+```
+
+### Manually triggering a build with GitHub CLI
+
+You can run builds on any branch or with custom inputs using the GitHub CLI:
+
+```
+# Trigger an auto-build on the 'dev' branch (no release)
+gh workflow run build-and-release.yml --ref dev -f create_release=false
+
+# Trigger a release build on 'main' with a specific tag and release name
+gh workflow run build-and-release.yml --ref main -f create_release=true -f release_tag=v1.2.3 -f release_name="Custom Release"
+```
+- Replace `build-and-release.yml` with the actual workflow filename if needed.
+- Use `--ref <branch>` to select which branch’s workflow should run.
+- The inputs `create_release`, `release_tag`, and `release_name` control whether and how a release is created.
+
+### Further notes
+
+- **Permissions:** For release creation to work, the workflow must have `permissions: contents: write` (see workflow YAML).
+- **Artifact Retention:** Actions artifacts are kept for a limited time (default: 90 days; set to 10 days in this repo).
+- **Release Assets:** Files attached to a GitHub Release persist until deleted.
+
+---
+
 ## Specific note on XRd
 
 The file that can be downloaded from CCO is e.g.
