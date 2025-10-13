@@ -103,13 +103,15 @@ jobs:
           set -euo pipefail
           make deb
 
-      - name: Upload artifacts (images and .deb)
+      - name: Upload packaging artifacts (deb, changes, buildinfo)
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: deb-artifacts
           path: |
-            BUILD/debian
             BUILD/*.deb
+            BUILD/*.changes
+            BUILD/*.buildinfo
+          retention-days: 10
 
       - name: Create GitHub Release (optional)
         if: >
@@ -140,7 +142,8 @@ jobs:
             exit 1
           fi
           upload_url=${upload_url%\{*}
-          for f in BUILD/*.deb BUILD/debian/*.tar.gz; do
+          # attach only Debian-related artifacts
+          for f in BUILD/*.deb BUILD/*.changes BUILD/*.buildinfo; do
             [ -f "$f" ] || continue
             fname=$(basename "$f")
             echo "Uploading $fname"
