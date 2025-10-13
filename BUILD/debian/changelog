@@ -1,3 +1,17 @@
+refplat-images-docker (1.6) UNRELEASED; urgency=medium
+
+ - CI / release workflow and Makefile improvements
+   - Added release workflow to build and publish Debian artifacts only
+   - Ensured the release pipeline creates a tarball alongside image artifacts
+ - Build controls via .disabled also for local builds
+ - Set platform to x86_64 for Docker builds to improve cross-host consistency
+ - Documentation and repository cleanup
+   - Added a compose section to README.md
+   - Multiple README and docs updates and cleanups to reflect new workflow and artifact formats
+   - Renamed/normalized artifact naming to use .tar.gz where appropriate 
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Mon, 13 Oct 2025 22:15:20 +0200
+
 refplat-images-docker (1.5) unstable; urgency=medium
 
   * better freeRADIUS container with proper logging and command line
