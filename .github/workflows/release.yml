@@ -4,9 +4,8 @@ permissions:
   contents: write
 
 on:
-  workflow_run:
-    workflows: ["build.yml"]
-    types: ["completed"]
+  push:
+    tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       build_run_id:
@@ -34,46 +33,63 @@ jobs:
       - name: Checkout (for helper scripts)
         uses: actions/checkout@v4
 
-      - name: Determine build run and download artifacts
+      - name: Find build for tag and download artifacts
         id: fetch_artifacts
         run: |
           set -euo pipefail
           mkdir -p artifacts
 
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            # Use the triggering build run id
-            RUN_ID=${{ github.event.workflow_run.id }}
-            echo "Triggered by workflow_run; using run id ${RUN_ID}"
-          else
-            if [ -n "${{ inputs.build_run_id }}" ]; then
-              RUN_ID=${{ inputs.build_run_id }}
-              echo "Manual dispatch, using provided build_run_id=${RUN_ID}"
-            elif [ "${{ inputs.use_latest }}" = "true" ]; then
-              echo "Manual dispatch: locating latest successful build run id via gh"
-              # find latest successful run for build.yml
-              RUN_ID=$(gh api repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs --jq '.workflow_runs | map(select(.conclusion=="success")) | .[0].id')
-              echo "Found latest successful run id: ${RUN_ID}"
-            else
-              echo "No build_run_id provided and use_latest=false; aborting"
-              exit 1
-            fi
+          # Ensure gh and jq are available
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "Installing gh CLI..."
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            sudo chmod 644 /usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt-get update && sudo apt-get install -y gh
+          fi
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "Installing jq..."
+            sudo apt-get update && sudo apt-get install -y jq
           fi
 
-          echo "RUN_ID=${RUN_ID}" >> $GITHUB_ENV
-          ARTIFACT_NAME=deb-artifacts-${RUN_ID}
-          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_ENV
-
-          # download the artifact
-          echo "Downloading artifact ${ARTIFACT_NAME}"
-          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts --jq ".artifacts | map(select(.name==\"${ARTIFACT_NAME}\")) | .[0].archive_download_url" | xargs -I{} curl -L -o artifact.zip -H "Authorization: token ${GITHUB_TOKEN}" {} || true
-          if [ -f artifact.zip ]; then
-            unzip -q artifact.zip -d artifacts || true
-            rm -f artifact.zip || true
+          # Only proceed for tag pushes
+          if [ -n "${GITHUB_REF:-}" ] && [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            COMMIT="${GITHUB_SHA}"
+            echo "Release triggered for tag=$TAG commit=$COMMIT"
           else
-            echo "Artifact ${ARTIFACT_NAME} not found via API; attempting download-action fallback"
-            # fallback to download-action if possible
-            echo "deb-artifacts-${RUN_ID}" > /tmp/artifact_name
+            echo "Not a tag-push release run; aborting."
+            exit 1
           fi
+
+          # Find a successful build run for this commit
+          RUN_ID=$(gh api repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs --jq \
+            ".workflow_runs | map(select(.head_sha==\"${COMMIT}\" and .conclusion==\"success\")) | .[0].id" || true)
+
+          if [ -z "${RUN_ID}" ] || [ "${RUN_ID}" = "null" ]; then
+            echo "Error: no successful build run found for commit ${COMMIT}. Aborting release."
+            echo "Ensure a successful build for this commit exists (CI on main) before pushing the tag."
+            exit 1
+          fi
+
+          echo "Found build run id: ${RUN_ID}"
+          ARTIFACT_NAME="deb-artifacts-${RUN_ID}"
+          echo "Looking for artifact: ${ARTIFACT_NAME}"
+
+          # Find artifact id
+          ARTIFACT_ID=$(gh api repos/${GITHUB_REPOSITORY}/actions/artifacts --jq \
+            ".artifacts | map(select(.name==\"${ARTIFACT_NAME}\")) | .[0].id" || true)
+
+          if [ -z "${ARTIFACT_ID}" ] || [ "${ARTIFACT_ID}" = "null" ]; then
+            echo "Error: artifact ${ARTIFACT_NAME} not found for run ${RUN_ID}. Aborting."
+            exit 1
+          fi
+
+          echo "Found artifact id: ${ARTIFACT_ID}; downloading..."
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip --output artifact.zip
+          unzip -q artifact.zip -d artifacts
+          rm -f artifact.zip
+          echo "Artifacts available under ./artifacts"
 
       - name: List downloaded artifacts
         run: |
