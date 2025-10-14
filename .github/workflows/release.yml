@@ -2,6 +2,7 @@ name: Release
 
 permissions:
   contents: write
+  actions: read
 
 on:
   push:
@@ -64,9 +65,9 @@ jobs:
             exit 1
           fi
 
-          # Find a successful build run for this commit
-          RUN_ID=$(gh api repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs --jq \
-            ".workflow_runs | map(select(.head_sha==\"${COMMIT}\" and .conclusion==\"success\")) | .[0].id" || true)
+          # Find a successful build run for this commit using the REST API
+          RUN_ID=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/build.yml/runs?per_page=100" \
+            | jq -r --arg COMMIT "${COMMIT}" '.workflow_runs | map(select(.head_sha==$COMMIT and .conclusion=="success")) | .[0].id')
 
           if [ -z "${RUN_ID}" ] || [ "${RUN_ID}" = "null" ]; then
             echo "Error: no successful build run found for commit ${COMMIT}. Aborting release."
@@ -78,9 +79,9 @@ jobs:
           ARTIFACT_NAME="deb-artifacts-${RUN_ID}"
           echo "Looking for artifact: ${ARTIFACT_NAME}"
 
-          # Find artifact id
-          ARTIFACT_ID=$(gh api repos/${GITHUB_REPOSITORY}/actions/artifacts --jq \
-            ".artifacts | map(select(.name==\"${ARTIFACT_NAME}\")) | .[0].id" || true)
+          # Find artifact id via REST API
+          ARTIFACT_ID=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts" \
+            | jq -r --arg NAME "${ARTIFACT_NAME}" '.artifacts | map(select(.name==$NAME)) | .[0].id')
 
           if [ -z "${ARTIFACT_ID}" ] || [ "${ARTIFACT_ID}" = "null" ]; then
             echo "Error: artifact ${ARTIFACT_NAME} not found for run ${RUN_ID}. Aborting."
@@ -88,7 +89,7 @@ jobs:
           fi
 
           echo "Found artifact id: ${ARTIFACT_ID}; downloading..."
-          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip --output artifact.zip
+          curl -L -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" -o artifact.zip
           unzip -q artifact.zip -d artifacts
           rm -f artifact.zip
           echo "Artifacts available under ./artifacts"
