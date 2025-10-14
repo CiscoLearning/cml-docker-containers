@@ -31,7 +31,6 @@ jobs:
     name: Sign artifacts and create GitHub Release
     runs-on: ubuntu-24.04
     env:
-      # GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout (for helper scripts)
@@ -187,11 +186,24 @@ jobs:
           set -euo pipefail
           cd artifacts
 
-          # determine tag to use
-          if [ -n "${{ inputs.release_tag }}" ]; then
+          # determine tag to use (prefer the pushed tag, then input, then build-run fallback)
+          if [ -n "${GITHUB_REF:-}" ] && [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            tag="${GITHUB_REF#refs/tags/}"
+          elif [ -n "${RELEASE_TAG:-}" ]; then
+            tag="${RELEASE_TAG}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
             tag="${{ inputs.release_tag }}"
+          elif [ -n "${BUILD_RUN_ID:-}" ]; then
+            tag="build-${BUILD_RUN_ID}"
           else
-            tag="build-${{ inputs.build_run_id }}"
+            echo "Error: no tag found or provided. Set inputs.release_tag, push a tag, or provide build_run_id." >&2
+            exit 1
+          fi
+
+          # sanity check tag format: non-empty, no whitespace
+          if [[ -z "${tag// /}" ]]; then
+            echo "Error: computed tag is empty or contains only whitespace" >&2
+            exit 1
           fi
 
           name="${{ inputs.release_name }}"
