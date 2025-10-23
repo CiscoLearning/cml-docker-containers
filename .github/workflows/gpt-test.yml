@@ -1,0 +1,50 @@
+name: GPG Test
+
+permissions:
+  contents: read
+  actions: read
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  gpt-test:
+    name: Test signing credentials
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Check secrets availability
+        env:
+          HAS_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+          HAS_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE != '' }}
+        run: |
+          set -euo pipefail
+          echo "GPG_PRIVATE_KEY set: ${HAS_PRIVATE_KEY}"
+          echo "GPG_PASSPHRASE set: ${HAS_PASSPHRASE}"
+          [ "${HAS_PRIVATE_KEY}" = "true" ] && [ "${HAS_PASSPHRASE}" = "true" ] || { echo "Required secrets missing"; exit 1; }
+
+      - name: Validate GPG passphrase against imported key
+        env:
+          GPG_FPR: ${{ steps.import_gpg.outputs.fingerprint }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="${GNUPGHOME:-$HOME/.gnupg}"
+          echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
+          gpgconf --reload gpg-agent
+          if printf "probe" | gpg --batch --yes --pinentry-mode loopback \
+               --passphrase "${PASSPHRASE}" \
+               --local-user "${GPG_FPR}" \
+               --armor --detach-sign --output /dev/null; then
+            echo "Passphrase OK for key ${GPG_FPR}"
+          else
+            echo "Passphrase invalid or agent refused loopback for key ${GPG_FPR}"; exit 1
+          fi
