@@ -1,0 +1,189 @@
+name: ISO Release
+
+permissions:
+  contents: write
+  actions: read
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional release tag to use when creating a release (creates tag on branch head)'
+        required: false
+        default: ''
+      release_name:
+        description: 'Optional release name'
+        required: false
+        default: ''
+      release_branch:
+        description: 'Branch to tag when release_tag is provided (default: main)'
+        required: false
+        default: 'main'
+
+jobs:
+  iso-release:
+    name: Build, sign, and release ISO
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install required tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates curl gnupg2 jq make xorriso tar unzip python3
+          # install gh CLI
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod 644 /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gh
+          # clean apt cache
+          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+          gh --version
+
+      - name: Discover top-level containers (Dockerfile && not .disabled)
+        id: discover
+        run: |
+          set -euo pipefail
+          containers=()
+          for d in ./*/; do
+            [ -d "$d" ] || continue
+            dir="${d#./}"; dir="${dir%/}"
+            if [ -f "${dir}/Dockerfile" ] && [ ! -f "${dir}/.disabled" ]; then
+              containers+=("$dir")
+            fi
+          done
+          printf '%s\n' "${containers[@]}" > container_list
+          echo "discovered=$(wc -l < container_list || true)" >> "$GITHUB_OUTPUT"
+
+      - name: Build each container sequentially
+        run: |
+          set -euo pipefail
+          if [ ! -f container_list ]; then
+            echo "No containers found; nothing to build."; exit 0
+          fi
+          while IFS= read -r c; do
+            echo "=== Building: $c ==="
+            make -C "$c"
+          done < container_list
+
+
+      - name: Create ISO artifact from BUILD/debian layout
+        id: make_iso
+        run: |
+          set -euo pipefail
+          images_dir="BUILD/debian/refplat-images-docker/var/lib/libvirt/images"
+          [ -d "$images_dir" ] || { echo "Images dir not found: $images_dir"; exit 1; }
+          ts=$(date -u +%Y%m%d%H%M%S)
+          out_iso="docker-refplat-images-${ts}.iso"
+          echo "Creating ${out_iso} under ${images_dir}"
+          (cd "$images_dir" && xorriso -as mkisofs -V REFPLAT -r -J -o "$(pwd)/../../../../${out_iso}" node-definitions virl-base-images)
+          ls -lh "$out_iso"
+          echo "out_iso=${out_iso}" >> "$GITHUB_OUTPUT"
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Check secrets availability
+        env:
+          HAS_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+          HAS_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE != '' }}
+        run: |
+          set -euo pipefail
+          echo "GPG_PRIVATE_KEY set: ${HAS_PRIVATE_KEY}"
+          echo "GPG_PASSPHRASE set: ${HAS_PASSPHRASE}"
+          [ "${HAS_PRIVATE_KEY}" = "true" ] && [ "${HAS_PASSPHRASE}" = "true" ] || { echo "Required secrets missing"; exit 1; }
+
+      - name: Validate GPG passphrase against imported key
+        env:
+          GPG_FPR: ${{ steps.import_gpg.outputs.fingerprint }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="${GNUPGHOME:-$HOME/.gnupg}"
+          echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
+          gpgconf --reload gpg-agent
+          if printf "probe" | gpg --batch --yes --pinentry-mode loopback \
+               --passphrase "${PASSPHRASE}" \
+               --local-user "${GPG_FPR}" \
+               --armor --detach-sign --output /dev/null; then
+            echo "Passphrase OK for key ${GPG_FPR}"
+          else
+            echo "Passphrase invalid or agent refused loopback for key ${GPG_FPR}"; exit 1
+          fi
+
+      - name: Create detached ASCII signature for ISO
+        env:
+          GPG_FPR: ${{ steps.import_gpg.outputs.fingerprint }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="${GNUPGHOME:-$HOME/.gnupg}"
+          echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
+          gpgconf --reload gpg-agent
+          iso='${{ steps.make_iso.outputs.out_iso }}'
+          [ -n "$iso" ] || { echo "Missing ISO path"; exit 1; }
+          echo "Signing $iso -> ${iso}.asc"
+          gpg --batch --yes --pinentry-mode loopback \
+              --passphrase "${PASSPHRASE}" \
+              --local-user "${GPG_FPR}" \
+              --armor --output "${iso}.asc" --detach-sign "$iso"
+
+      - name: Determine/prepare release tag
+        id: tagprep
+        run: |
+          set -euo pipefail
+          # prefer pushed tag; else use input; else iso-<ts>
+          if [ -n "${GITHUB_REF:-}" ] && [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            tag="${GITHUB_REF#refs/tags/}"
+            echo "Using pushed tag: ${tag}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            tag="${{ inputs.release_tag }}"
+            branch="${{ inputs.release_branch }}"; [ -n "$branch" ] || branch="main"
+            # resolve branch head commit and create tag if missing
+            sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/refs/heads/${branch}" --jq '.object.sha')
+            if gh api "repos/${GITHUB_REPOSITORY}/git/refs/tags/${tag}" >/dev/null 2>&1; then
+              echo "Tag '${tag}' already exists"
+            else
+              echo "Creating tag refs/tags/${tag} -> ${sha}"
+              gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f ref="refs/tags/${tag}" -f sha="${sha}" >/dev/null
+            fi
+          else
+            ts=$(date -u +%Y%m%d%H%M%S)
+            tag="iso-${ts}"
+            echo "No tag provided; using ${tag}"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload ISO
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          iso='${{ steps.make_iso.outputs.out_iso }}'
+          [ -n "$iso" ] || { echo "Missing ISO path"; exit 1; }
+          tag='${{ steps.tagprep.outputs.tag }}'
+          name='${{ inputs.release_name }}'; [ -n "$name" ] || name="Automated ISO release ${tag}"
+          body="Automated ISO-only release"
+          # create release idempotently
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            echo "Release '${tag}' already exists"
+          else
+            gh release create "${tag}" --title "${name}" --notes "${body}"
+          fi
+          # upload ISO + signature
+          gh release upload "${tag}" "$iso" "${iso}.asc" --clobber
+
+      - name: List artifacts
+        run: |
+          ls -la | sed -n '1,200p'

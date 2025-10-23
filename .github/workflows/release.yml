@@ -5,8 +5,8 @@ permissions:
   actions: read
 
 on:
-  push:
-    tags: [ 'v*' ]
+  # push:
+  #   tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       build_run_id:
