@@ -18,7 +18,7 @@
     - [IOS XRd](#ios-xrd)
     - [Netflow](#netflow)
     - [Splunk](#splunk)
-<!--toc:end-->
+    <!--toc:end-->
 
 ---
 
@@ -26,13 +26,13 @@
 
 This repository contains automation and templates to build container images, node definitions and image definitions for use with CML (tested for CML 2.9+). Most container specs in this repository pull software from Docker Hub or public resources; a few require additional manual content (see [Special nodes](#special-nodes)).
 
-<details>
-<summary>Debian packaging</summary>
+<details><summary>Debian packaging</summary>
 
 > [!NOTE]
-> Debian packaging is usually not needed!
+> Debian package creation is usually not needed!
 
 A single package name variable `PKG` controls the Debian package name and also the output directory under `BUILD/debian/<PKG>/...`. It is defined centrally in `templates/pkg.mk` and used by both the root and per-module Makefiles. By default `PKG=refplat-images-docker`.
+
 </details>
 
 ## Quickstart
@@ -241,7 +241,7 @@ gh workflow run iso-release --ref main -f release_tag=v1.2.3 -f release_name="Re
 
 ## Handling Multi-Container (Docker Compose) Solutions
 
-> [!IMPORTANT]
+> [!TIP]
 > TL;DR -- Don't try to create multi-container node definitions, they will very likely **not work**!
 
 Cisco Modeling Labs (CML) is designed to treat each node in a topology as a single, self-contained service or application. While it might be tempting to directly deploy multi-container applications, often defined using `docker-compose`, into CML by attempting to split them into individual CML nodes, this approach is generally not recommended and can lead to significant complications.
