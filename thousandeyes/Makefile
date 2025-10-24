@@ -12,7 +12,9 @@ include ../templates/clean.mk
 IMG := te-ea.tgz
 
 .PHONY: build
-build: $(DNT) $(NDEF)
+build: $(DNT)/$(NTAG).tar.gz
+
+$(DNT)/$(NTAG).tar.gz: Dockerfile | $(DNT)
 	docker pull thousandeyes/enterprise-agent:latest-agent
 	docker tag  thousandeyes/enterprise-agent:latest-agent $(NAME):$(TAG)
 	docker save $(NAME):$(TAG) | gzip - >$(IMG)

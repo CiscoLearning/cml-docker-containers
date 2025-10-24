@@ -14,7 +14,9 @@ TMPIMG := xrd-control-plane-container-x64.dockerv1.tgz
 IMG := ios-xrd.tgz
 
 .PHONY: build
-build: $(DNT) $(NDEF)
+build: $(DNT)/$(NTAG).tar.gz
+
+$(DNT)/$(NTAG).tar.gz: Dockerfile | $(DNT)
 	@if ! [ -f "$(XRD)" ]; then \
 	  echo "required file missing, see README"; \
 		exit 1; \

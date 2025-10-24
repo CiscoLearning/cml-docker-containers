@@ -47,45 +47,17 @@ jobs:
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
           gh --version
 
-      - name: Discover top-level containers (Dockerfile && not .disabled)
-        id: discover
-        run: |
-          set -euo pipefail
-          containers=()
-          for d in ./*/; do
-            [ -d "$d" ] || continue
-            dir="${d#./}"; dir="${dir%/}"
-            if [ -f "${dir}/Dockerfile" ] && [ ! -f "${dir}/.disabled" ]; then
-              containers+=("$dir")
-            fi
-          done
-          printf '%s\n' "${containers[@]}" > container_list
-          echo "discovered=$(wc -l < container_list || true)" >> "$GITHUB_OUTPUT"
-
-      - name: Build each container sequentially
-        run: |
-          set -euo pipefail
-          if [ ! -f container_list ]; then
-            echo "No containers found; nothing to build."; exit 0
-          fi
-          while IFS= read -r c; do
-            echo "=== Building: $c ==="
-            make -C "$c"
-          done < container_list
-
-
-      - name: Create ISO artifact from BUILD/debian layout
+      - name: Create ISO artifact via Makefile
         id: make_iso
         run: |
           set -euo pipefail
-          images_dir="BUILD/debian/refplat-images-docker/var/lib/libvirt/images"
-          [ -d "$images_dir" ] || { echo "Images dir not found: $images_dir"; exit 1; }
           ts=$(date -u +%Y%m%d%H%M%S)
+          images_dir="BUILD/debian/refplat-images-docker/var/lib/libvirt/images"
+          echo "Timestamp: ${ts}"
+          make iso TS="${ts}"
           out_iso="docker-refplat-images-${ts}.iso"
-          echo "Creating ${out_iso} from ${images_dir}"
-          # Write ISO to workspace root to avoid relative path confusion
-          xorriso -as mkisofs -V REFPLAT -r -J -o "$PWD/${out_iso}" "$images_dir/"
-          ls -lh "$PWD/$out_iso" || ls -lh "$out_iso"
+          [ -f "${out_iso}" ] || { echo "ISO not found: ${out_iso}"; exit 1; }
+          ls -lh "${out_iso}"
           echo "out_iso=${out_iso}" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG key
