@@ -27,7 +27,7 @@ define DEFAULT_PREPARE_IMAGE
 		--build-arg version=$(VERSION) \
 		$(if $(HTTP_PROXY), --build-arg HTTP_PROXY=$(HTTP_PROXY)) \
 		$(if $(HTTPS_PROXY), --build-arg HTTPS_PROXY=$(HTTPS_PROXY)) \
-		$(if $(NO_PROXY), --build-arg NO_PROXY=$(NO_PROXY));
+		$(if $(NO_PROXY), --build-arg NO_PROXY=$(NO_PROXY))
 endef
 
 $(DNT)/$(NTAG).tar.gz: Dockerfile | $(DNT)

@@ -1,5 +1,6 @@
 # list of subdirectories containing a Dockerfile (skip dirs with .disabled)
 SUBDIRS := $(shell find . -type f -name Dockerfile -exec dirname {} \; | sort -u | while read -r d; do if [ ! -f "$$d/.disabled" ]; then echo "$$d"; fi; done)
+LVIMAGES := BUILD/debian/refplat-images-docker/var/lib/libvirt/images
 
 # timestamp for ISO naming; can be overridden via make iso TS=...
 TS ?= $(shell date -u +%Y%m%d%H%M%S)
@@ -18,16 +19,29 @@ clean:
 	@rm -rf debian/refplat-images-docker
 	@cd BUILD && ( command -v dh_clean >/dev/null 2>&1 && dh_clean || true )
 
-.PHONY: iso
+.PHONY: iso iso-list clean-iso
+# Split ISO build: uses per-subdir file 'disk-name' containing a suffix like "", "-extras", "-big"
+# Builds one ISO per suffix group with constant volume label REFPLAT.
 iso: build
+	@scripts/build-split-isos.sh "$(TS)" "$(SUBDIRS)" "$(LVIMAGES)"
+
+# Show mapping of modules to suffixes and predicted ISO names
+iso-list:
 	@set -e; \
-	images_dir="BUILD/debian/refplat-images-docker/var/lib/libvirt/images"; \
-	[ -d "$$images_dir" ] || { echo "Images dir not found: $$images_dir"; exit 1; }; \
-	out_iso="docker-refplat-images-$(TS).iso"; \
-	echo "Creating $$out_iso from $$images_dir/node-definitions and $$images_dir/virl-base-images"; \
-	xorriso -as mkisofs -V REFPLAT -r -J -o "$$out_iso" "$$images_dir"; \
-	ls -lh "$$out_iso"
- 
+	suffixes=$$(for d in $(SUBDIRS); do [ -f "$$d/disk-name" ] && cat "$$d/disk-name" || echo ""; done | tr -d '\r' | awk '{ sub(/[[:space:]]+$$/, ""); print }' | sort -u); \
+	echo "Discovered suffix groups:"; \
+	for sfx in $$suffixes; do echo "  group: '"$$sfx"' -> docker-refplat-images"$$sfx"-$(TS).iso"; done; \
+	echo "Module assignments:"; \
+	for d in $(SUBDIRS); do \
+		[ -f "$$d/disk-name" ] && sfx=$$(cat "$$d/disk-name" | tr -d '\n' | awk '{ sub(/[[:space:]]+$$/, ""); print }') || sfx=""; \
+		echo "  $$d -> '"$$sfx"'"; \
+	done
+
+# Clean ISO outputs and staging trees
+clean-iso:
+	@rm -f docker-refplat-images*-$(TS).iso; \
+	rm -rf $(LVIMAGES)/iso-staging*;
+
  
 .PHONY: deb
 deb: build
