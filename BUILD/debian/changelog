@@ -1,4 +1,18 @@
+refplat-images-docker (0.2.0) unstable; urgency=medium
+
+  * touches on documentation and GH actions
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Fri, 24 Oct 2025 15:16:18 +0200
+
 refplat-images-docker (0.1.9) unstable; urgency=medium
+  * ISO Release Workflow and Build Improvements
+    - Added split ISO build support via make iso, make iso-list, and make clean-iso
+    - Introduced scripts/build-split-isos.sh to stage files and create ISOs with xorriso
+    - Refactored top-level Makefile to use centralized PKG and parameterized image paths
+    - Centralized PKG definition in templates/pkg.mk; included from root and submodule builds
+    - Improved build templates: safer command concatenation, portable sed usage, and explicit -follow-links
+    - Adjusted module Makefiles (e.g., ThousandEyes, XRd) to align with refactored build and image preparation overrides
+    - Updated CI workflow iso-release.yml to accommodate ISO build/release flow
 
   * Cleanup & update
     - renamed templates/makefile to templates/build.mk

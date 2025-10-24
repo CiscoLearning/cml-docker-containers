@@ -1,6 +1,6 @@
 # Automation for building CML Docker Containers
 
-This repository automates building Docker images and the node/image definition files used by Cisco Modeling Labs (CML). It produces artifacts and a Debian package (.deb) that can be installed on a CML server. The output mirrors the CML server layout so artifacts can be copied directly to `/var/lib/libvirt/images/...`.
+[![ISO Release](https://github.com/CiscoLearning/cml-docker-containers/actions/workflows/iso-release.yml/badge.svg)](https://github.com/CiscoLearning/cml-docker-containers/actions/workflows/iso-release.yml)
 
 <!--toc:start-->
 - [Automation for building CML Docker Containers](#automation-for-building-cml-docker-containers)
@@ -9,31 +9,42 @@ This repository automates building Docker images and the node/image definition f
   - [Dependencies](#dependencies)
   - [How discovery & selection work](#how-discovery-selection-work)
   - [Building (local development)](#building-local-development)
+  - [ISO splitting (optional)](#iso-splitting-optional)
   - [Results (what is produced & where)](#results-what-is-produced-where)
   - [Contributing: Adding a new container](#contributing-adding-a-new-container)
-  - [CI: GitHub Actions, artifacts & releases](#ci-github-actions-artifacts-releases)
-    - [Manual triggers](#manual-triggers)
-    - [Permissions](#permissions)
-    - [Artifact retention and storage](#artifact-retention-and-storage)
-  - [Troubleshooting](#troubleshooting)
+  - [CI: GitHub Actions](#ci-github-actions)
   - [Handling Multi-Container (Docker Compose) Solutions](#handling-multi-container-docker-compose-solutions)
   - [Special nodes](#special-nodes)
     - [IOS XRd](#ios-xrd)
     - [Netflow](#netflow)
     - [Splunk](#splunk)
-  - [Pro tips](#pro-tips)
-  - [Appendix: examples & useful commands](#appendix-examples-useful-commands)
-<!--toc:end-->
+    <!--toc:end-->
 
 ---
 
 ## Project overview
 
-This repository contains automation and templates to build container images, node definitions and image definitions for use with CML (tested for CML 2.9+). Most container specs in this repository pull software from Docker Hub or public resources; a few require additional manual content (see Special nodes).
+This repository contains automation and templates to build container images, node definitions and image definitions for use with CML (tested for CML 2.9+). Most container specs in this repository pull software from Docker Hub or public resources; a few require additional manual content (see [Special nodes](#special-nodes)).
+
+<details><summary>Debian packaging</summary>
+
+> [!NOTE]
+> Debian package creation is usually not needed!
+
+A single package name variable `PKG` controls the Debian package name and also the output directory under `BUILD/debian/<PKG>/...`. It is defined centrally in `templates/pkg.mk` and used by both the root and per-module Makefiles. By default `PKG=refplat-images-docker`.
+
+</details>
 
 ## Quickstart
 
 Build everything locally:
+
+```sh
+# build the reference platform ISO
+make iso
+```
+
+Other, more advanced examples and targets (usually not needed unless developing):
 
 ```sh
 # build all enabled containers and generate definitions
@@ -42,13 +53,23 @@ make
 # build a single container (development)
 make -C <container-dir>
 
+# build ISOs grouped by per-module iso-name suffixes
+make iso
+
+# preview ISO groups and module assignments
+make iso-list
+
+# clean ISO outputs and staging
+make clean-iso
+
 # build the Debian package (requires packaging tools)
 make deb
 ```
 
 Inspect generated files and package:
 
-- Definitions and images: `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...`
+- Definitions and images: `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...` (uses `PKG`; default shown)
+- ISOs: `docker-refplat-images<SFX>-<TS>.iso` in repository root
 - Debian package: `*.deb`, `*.buildinfo`, `*.changelog`
 
 ## Dependencies
@@ -58,32 +79,34 @@ Recommended environment: Ubuntu 24.04 (local VM or developer machine).
 Required for building and packaging:
 
 - Docker (engine/CLI)
+- make
+- xorriso (for ISO creation)
+  - Linux (Debian/Ubuntu): `sudo apt-get install xorriso`
+  - macOS (Homebrew): `brew install xorriso`
 
 For building the .deb package you also need:
 
 - dpkg-dev
-- devscripts
-- fakeroot
 - debhelper
-- build-essential
+- fakeroot
 
-If you only need to build images (no Debian package), you only need `make` and Docker.
+If you only need to build images (no Debian package, no ISOs), you only need `make` and Docker.
 
 ## How discovery & selection work
 
 - Discovery: the build system (and CI) scans top-level subdirectories for a `Dockerfile`. Each such directory is treated as a container specification.
 - Skip / opt-out: to exclude a container from builds (both local and CI), place an empty file named `.disabled` in that container directory (for example: `chrome/.disabled`). The top-level Makefile and per-directory recipes honor this file and will skip building and definition generation, printing a clear message.
-- Output layout: builders and templates create the YAML files and image tarballs under `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...` so the structure matches what CML expects on the server.
+- Output layout: builders and templates create the YAML files and image tarballs under `BUILD/debian/<PKG>/var/lib/libvirt/images/...` so the structure matches what CML expects on the server (default `PKG=refplat-images-docker`).
 
 ## Building (local development)
 
 1. Build a single container:
 
 ```sh
-make chrome   # example: builds chrome container and definitions
+make -C chrome   # example: builds chrome container and definitions
 ```
 
-1. Build everything:
+1. Build the images (but don't build any deb or ISO):
 
 ```sh
 make
@@ -95,22 +118,60 @@ make
 make deb
 ```
 
+1. Build ISOs (split by group suffixes):
+
+```sh
+make iso
+```
+
 **Notes:**
 
-- Per-container Makefiles usually soft-link to  `../templates/build.mk`. Use an existing container (for example `chrome/` or `nginx/`) as a template when adding a new container.
+- Per-container Makefiles usually include `../templates/build.mk`. Use an existing container (for example `chrome/` or `nginx/`) as a template when adding a new container.
 - If a `.disabled` file exists in a container directory, `make -C <dir>` will skip building that container and print a message.
+- Modules may override image preparation via `PREPARE_IMAGE_CMD` in their `Makefile`. This command replaces the default `docker buildx` step (e.g., pulling and tagging a pre-built image).
+
+## ISO splitting (optional)
+
+You can split the output into multiple ISO images by placing a small file named `iso-name` in container subdirectories. The file content determines the ISO group suffix.
+
+- File: `<module>/iso-name`
+- Content: a suffix string like `""` (empty), `-extras`, `-big`, etc.
+- Default: if `iso-name` is missing, the module belongs to the main ISO (empty suffix).
+- Command: `make iso` builds one ISO per discovered suffix group using volume label `REFPLAT`.
+- Listing: `make iso-list` shows discovered groups and module assignments.
+- Cleaning: `make clean-iso` removes ISO files and staging directories.
+
+Example:
+
+```sh
+# assign nginx to the "extras" ISO
+echo -extras > nginx/iso-name
+
+# build split ISOs
+make iso
+# outputs: docker-refplat-images-<TS>.iso (main), docker-refplat-images-extras-<TS>.iso
+```
+
+Notes:
+
+- The ISO build stages files into `BUILD/debian/<PKG>/var/lib/libvirt/images/iso-staging<SFX>` and uses symlinks with `xorriso -as mkisofs -r -J -V REFPLAT -follow-links` so file contents are included even if staged via links.
+- Always build modules before `make iso` so their tarballs and YAMLs exist; otherwise, symlink targets will be missing.
+- If group assignments or files changed, run `make clean-iso` before rebuilding ISOs to avoid stale links.
 
 ## Results (what is produced & where)
 
-- Image tarballs and YAML definitions are placed under:
+- Running the tooling produces image tarballs and YAML definitions under:
 
 ```plain
-BUILD/debian/refplat-images-docker/var/lib/libvirt/images/<...>
+BUILD/debian/<PKG>/var/lib/libvirt/images/<...>
 ```
 
 - The Debian package is produced as `<package>.deb` (see `make deb`).
+- Split ISO images are produced as `docker-refplat-images<SFX>-<TS>.iso`.
 
-The generated tree mirrors the CML server layout so files may be copied to `/var/lib/libvirt/images/...` on the server.
+ISOs and .deb files are placed in the repository root. The generated tree
+mirrors the CML server layout so files may be copied to
+`/var/lib/libvirt/images/...` on the server.
 
 ## Contributing: Adding a new container
 
@@ -121,12 +182,12 @@ Minimum directory layout (required files)
 ```plain
 mycontainer/
   Dockerfile                 # required for discovery
-  Makefile                   # usually: soft-link to ../templates/build.mk
+  Makefile                   # usually: sym-link to ../templates/build.mk
   vars.mk                    # required metadata (see below)
   node-definition            # required: template used for node YAML
 ```
 
-**Important:** `node-definition` is required: the `definitions` recipe uses this template to create the YAML file placed in the `BUILD/debian/refplat-images-docker/` tree.
+**Important:** `node-definition` is required: the `definitions` recipe uses this template to create the YAML file placed in the `BUILD/debian/<PKG>/` tree.
 
 Minimum `vars.mk` example
 
@@ -140,11 +201,12 @@ FULLDESC=Longer, user-facing description
 Requirements and recommendations
 
 - `Dockerfile` must exist for discovery.
-- Prefer to `include ../templates/build.mk` in your `Makefile` unless you have specialized needs.
+- Prefer to sym-link `../templates/build.mk` to your `Makefile` unless you have specialized needs.
 - Output expectations:
-  - Image tarball (e.g., `$(NTAG).tar.gz`) must appear under `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...`.
+  - Image tarball (e.g., `$(NTAG).tar.gz`) must appear under `BUILD/debian/<PKG>/var/lib/libvirt/images/...`.
   - Definition YAMLs must be generated into that same area.
 - To opt out of builds, add an empty `.disabled` file in the container directory.
+- If your container uses a prebuilt image (e.g., from Docker Hub), override the build step by setting `PREPARE_IMAGE_CMD` in your module `Makefile`.
 
 Local test flow
 
@@ -154,69 +216,33 @@ Local test flow
 make -C mycontainer
 ```
 
-1. Generate definitions (if not already generated by build):
-
-```sh
-make -C mycontainer definitions
-```
-
 1. Build the package locally:
 
 ```sh
-make deb
+make iso
 ```
 
 1. Confirm files:
 
-- `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...`
-- `*.deb`
+- `BUILD/debian/<PKG>/var/lib/libvirt/images/...`
+- `*.iso`
 
-CI test (manual run)
-
-```sh
-gh workflow run build-and-release.yml --ref <your-branch> -f create_release=false
-```
-
-## CI: GitHub Actions, artifacts & releases
-
-Behavior
-
-- The workflow discovers directories containing `Dockerfile` and without `.disabled` and builds them sequentially.
-- After image builds, the workflow updates `BUILD/debian/changelog` and sets a timestamped package version: `<base>+YYYYMMDDHHMMSS` (UTC). The changelog entry message is exactly `auto-built on github on <YYYY-MM-DD HH:MM:SSZ>`.
-- The workflow builds the `.deb` package and uploads Debian packaging artifacts: `*.deb`, `*.changes`, and `*.buildinfo`. It also creates a pruned tarball containing only the `var/lib/...` subtree named like `docker-refplat-images-<ts>.tar.gz` and uploads that tarball as an artifact and (optionally) attaches it to a GitHub Release.
-
-### Manual triggers
+## CI: GitHub Actions
 
 Use the Actions UI "Run workflow" button or the GitHub CLI:
 
 ```sh
 # run workflow on 'dev' without creating a release
-gh workflow run build-and-release.yml --ref dev -f create_release=false
+gh workflow run iso-release --ref dev
 
 # run and create a release
-gh workflow run build-and-release.yml --ref main -f create_release=true -f release_tag=v1.2.3 -f release_name="Release name"
+gh workflow run iso-release --ref main -f release_tag=v1.2.3 -f release_name="Release name"
 ```
 
-### Permissions
-
-- The workflow requires `permissions: contents: write` to create releases using the injected `GITHUB_TOKEN`. If your organization restricts this, use a PAT stored as a repository secret for the release steps or ask an admin to allow write permissions for the workflow.
-
-### Artifact retention and storage
-
-- Actions artifacts are retained for a limited period; this repository configures `retention-days: 10` for uploaded artifacts.
-- Files attached to GitHub Releases persist until manually deleted.
-
-## Troubleshooting
-
-- **Build not skipped even though `.disabled` exists**: ensure the `.disabled` file is in the container directory (e.g., `chrome/.disabled`) and you are running the updated Makefiles. The repository Makefiles include guards that skip builds and definitions when `.disabled` is present.
-
-- **`docker image inspect` or "No such image" errors when generating definitions**: build the image first (`make -C <dir>`) before running `make definitions`. The `definitions` target now checks for the image and will skip if it is missing.
-
-- **CI release step fails with `Resource not accessible by integration` (403)**: confirm `permissions: contents: write` is set and allowed for workflows. If the organization blocks write tokens, use a PAT in repository secrets and modify the release step to use it.
-
-- **Artifacts are large**: consider attaching only the `.deb` to Releases for long-term storage or hosting very large artifacts externally.
-
 ## Handling Multi-Container (Docker Compose) Solutions
+
+> [!TIP]
+> TL;DR -- Don't try to create multi-container node definitions, they will very likely **not work**!
 
 Cisco Modeling Labs (CML) is designed to treat each node in a topology as a single, self-contained service or application. While it might be tempting to directly deploy multi-container applications, often defined using `docker-compose`, into CML by attempting to split them into individual CML nodes, this approach is generally not recommended and can lead to significant complications.
 
@@ -252,34 +278,6 @@ Netflow depends on an older Debian package that is not present in modern distrib
 
 ### Splunk
 
-Splunk images are large and disabled by default. Consider keeping Splunk out of automated builds unless required.
-
-## Pro tips
-
-- Copy an existing container directory (e.g., `chrome/` or `nginx/`) when creating a new container — it speeds onboarding and avoids missing variables.
-- Keep Docker images small to reduce CI time and storage usage.
-- Use the `gh` CLI to trigger workflows and inspect runs (`gh run list`, `gh run view <id>`).
-
-## Appendix: examples & useful commands
-
-- Example skeleton
-
-```plain
-mycontainer/
-  Dockerfile
-  Makefile (soft-link to ../templates/build.mk)
-  vars.mk
-  node-definition
-```
-
-- Useful CI command examples
-
-```sh
-# run workflow on a branch without release
-gh workflow run build-and-release.yml --ref dev -f create_release=false
-
-# trigger release via workflow dispatch
-gh workflow run build-and-release.yml --ref main -f create_release=true -f release_tag=v1.2.3 -f release_name="Release name"
-```
+Splunk images are large and disabled by default. Consider keeping Splunk out of automated builds unless required. When creating ISOs, Splunk is put into its own ISO (using the `iso-name` file in the module dir).
 
 ---

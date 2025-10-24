@@ -47,46 +47,20 @@ jobs:
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
           gh --version
 
-      - name: Discover top-level containers (Dockerfile && not .disabled)
-        id: discover
-        run: |
-          set -euo pipefail
-          containers=()
-          for d in ./*/; do
-            [ -d "$d" ] || continue
-            dir="${d#./}"; dir="${dir%/}"
-            if [ -f "${dir}/Dockerfile" ] && [ ! -f "${dir}/.disabled" ]; then
-              containers+=("$dir")
-            fi
-          done
-          printf '%s\n' "${containers[@]}" > container_list
-          echo "discovered=$(wc -l < container_list || true)" >> "$GITHUB_OUTPUT"
-
-      - name: Build each container sequentially
-        run: |
-          set -euo pipefail
-          if [ ! -f container_list ]; then
-            echo "No containers found; nothing to build."; exit 0
-          fi
-          while IFS= read -r c; do
-            echo "=== Building: $c ==="
-            make -C "$c"
-          done < container_list
-
-
-      - name: Create ISO artifact from BUILD/debian layout
+      - name: Create ISO artifacts via Makefile
         id: make_iso
         run: |
           set -euo pipefail
-          images_dir="BUILD/debian/refplat-images-docker/var/lib/libvirt/images"
-          [ -d "$images_dir" ] || { echo "Images dir not found: $images_dir"; exit 1; }
           ts=$(date -u +%Y%m%d%H%M%S)
-          out_iso="docker-refplat-images-${ts}.iso"
-          echo "Creating ${out_iso} from ${images_dir}"
-          # Write ISO to workspace root to avoid relative path confusion
-          xorriso -as mkisofs -V REFPLAT -r -J -o "$PWD/${out_iso}" "$images_dir/"
-          ls -lh "$PWD/$out_iso" || ls -lh "$out_iso"
-          echo "out_iso=${out_iso}" >> "$GITHUB_OUTPUT"
+          echo "Timestamp: ${ts}"
+          make iso TS="${ts}"
+          # collect all ISOs built for this timestamp
+          isos=$(ls -1 docker-refplat-images-*"${ts}".iso 2>/dev/null || true)
+          [ -n "${isos}" ] || { echo "No ISO files found for TS=${ts}"; exit 1; }
+          echo "Found ISO files:" && printf "%s\n" ${isos}
+          echo "ts=${ts}" >> "$GITHUB_OUTPUT"
+          isos_json=$(jq -nc '$ARGS.positional' --args ${isos})
+          echo "isos_json=${isos_json}" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG key
         id: import_gpg
@@ -95,7 +69,7 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Create detached ASCII signature for ISO
+      - name: Create detached ASCII signatures for ISOs
         env:
           GPG_FPR: ${{ steps.import_gpg.outputs.fingerprint }}
           PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
@@ -104,13 +78,16 @@ jobs:
           export GNUPGHOME="${GNUPGHOME:-$HOME/.gnupg}"
           echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
           gpgconf --reload gpg-agent
-          iso='${{ steps.make_iso.outputs.out_iso }}'
-          [ -n "$iso" ] || { echo "Missing ISO path"; exit 1; }
-          echo "Signing $iso -> ${iso}.asc"
-          gpg --batch --yes --pinentry-mode loopback \
-              --passphrase "${PASSPHRASE}" \
-              --local-user "${GPG_FPR}" \
-              --armor --output "${iso}.asc" --detach-sign "$iso"
+          # sign every ISO from previous step
+          for iso in $(jq -r '.[]' <<< '${{ steps.make_iso.outputs.isos_json }}'); do
+            [ -n "$iso" ] || continue
+            [ -f "$iso" ] || { echo "Missing ISO file: $iso"; exit 1; }
+            echo "Signing $iso -> ${iso}.asc"
+            gpg --batch --yes --pinentry-mode loopback \
+                --passphrase "${PASSPHRASE}" \
+                --local-user "${GPG_FPR}" \
+                --armor --output "${iso}.asc" --detach-sign "$iso"
+          done
 
       - name: Determine/prepare release tag
         id: tagprep
@@ -138,24 +115,28 @@ jobs:
           fi
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release and upload ISO
+      - name: Create GitHub Release (draft) and upload ISOs
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag != '') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          iso='${{ steps.make_iso.outputs.out_iso }}'
-          [ -n "$iso" ] || { echo "Missing ISO path"; exit 1; }
           tag='${{ steps.tagprep.outputs.tag }}'
           name='${{ inputs.release_name }}'; [ -n "$name" ] || name="Automated ISO release ${tag}"
           body="Automated ISO-only release"
-          # create release idempotently
+          # create release idempotently as draft (not latest)
           if gh release view "${tag}" >/dev/null 2>&1; then
             echo "Release '${tag}' already exists"
           else
-            gh release create "${tag}" --title "${name}" --notes "${body}"
+            gh release create "${tag}" --title "${name}" --notes "${body}" --draft
           fi
-          # upload ISO + signature
-          gh release upload "${tag}" "$iso" "${iso}.asc" --clobber
+          # upload all ISOs + signatures
+          jq -r '.[]' <<< '${{ steps.make_iso.outputs.isos_json }}' | while IFS= read -r iso; do
+            [ -n "$iso" ] || continue
+            [ -f "$iso" ] || { echo "Missing ISO file: $iso"; exit 1; }
+            [ -f "${iso}.asc" ] || { echo "Missing signature: ${iso}.asc"; exit 1; }
+            gh release upload "${tag}" "$iso" "${iso}.asc" --clobber
+          done
 
       - name: List artifacts
         run: |
