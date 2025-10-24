@@ -143,7 +143,7 @@ jobs:
             gh release upload "${tag}" "$iso" "${iso}.asc" --clobber
           done
           # also upload the inventory markdown as an asset
-          gh release upload "${tag}" "$notes_file" --clobber
+          # gh release upload "${tag}" "$notes_file" --clobber
 
       - name: List artifacts
         run: |
