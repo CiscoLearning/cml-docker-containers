@@ -182,7 +182,7 @@ Minimum directory layout (required files)
 ```plain
 mycontainer/
   Dockerfile                 # required for discovery
-  Makefile                   # usually: sym-link to ../templates/build.mk
+  Makefile                   # usually: sym-link to ../../templates/build.mk
   vars.mk                    # required metadata (see below)
   node-definition            # required: template used for node YAML
 ```
