@@ -1,0 +1,106 @@
+#
+# {{DESC}} node definition
+# generated {{DATE}}
+# part of VIRL^2
+#
+
+id: {{NAME}}
+sim:
+  linux_native:
+    driver: ubuntu
+    libvirt_domain_driver: docker
+    cpus: 1
+    ram: 1024
+    cpu_limit: 100
+inherited:
+  image:
+    ram: true
+    cpus: false
+    cpu_limit: false
+    data_volume: false
+    boot_disk_size: false
+  node:
+    ram: true
+    cpus: false
+    cpu_limit: false
+    data_volume: false
+    boot_disk_size: false
+general:
+  nature: server
+  description: {{DESC}} (Docker)
+  read_only: true
+schema_version: 0.0.1
+configuration:
+  generator:
+    driver: null
+  provisioning:
+    volume_name: cfg
+    media_type: raw
+    files:
+      - name: config.json
+        content: |-
+          {
+            "docker": {
+              "image": "{{IMAGENAMETAG}}",
+              "env": [
+                "SOME_VAR=1",
+                "SOME_OTHER_VAR=snort runs here"
+              ],
+              "mounts": [
+                "type=bind,source=cfg/boot.sh,target=/boot.sh"
+              ]
+            },
+            "shell": "/bin/bash",
+            "day0cmd": [ "/bin/bash", "/boot.sh" ],
+            "busybox": true
+          }
+        editable: false
+      - name: boot.sh
+        editable: true
+        content: |-
+          # Insert more commands here
+          # ip address add dev eth1 10.0.0.1/24
+          # ip link set dev eth1 up
+          #
+          # keep the next line to indicate that the machine is ready
+          echo "READY" >/dev/console
+          exit 0
+      - name: environment
+        content: |-
+          # Create additional environment variables
+          # VARIABLE="some value"
+        editable: true
+      - name: mounts
+        content: |-
+          # Can map a volume with signatures into container so that Snort can
+          # use them. By default, only type=volume is allowed, see
+          # /etc/default/docker-shim.env
+          # Note: Volumes must exist to be usable and can be created via
+          # "docker volume create wwwdata" where wwwdata is the name
+          #
+          # type=volume,source=signatures,target=/wherever
+        editable: true
+device:
+  interfaces:
+    physical:
+      - eth0
+      - eth1
+      - eth2
+      - eth3
+    has_loopback_zero: false
+    default_count: 1
+    serial_ports: 1
+boot:
+  timeout: 30
+  completed:
+    - READY
+pyats:
+  os: linux
+ui:
+  description: |
+    {{FULLDESC}}
+  group: Others
+  icon: server
+  label: Snort
+  label_prefix: snort-
+  visible: true

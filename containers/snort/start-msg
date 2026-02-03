@@ -1,0 +1,13 @@
+cat << EOF
+
+NOTE
+
+This is primarily for training and education.
+The image does NOT include a production-ready set of signatures!
+
+Please look into the examples directory.
+There's also a "snort" shell alias.
+
+https://snort.org/snort3
+
+EOF
