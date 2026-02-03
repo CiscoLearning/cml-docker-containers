@@ -1,4 +1,4 @@
-VERSION      := 2.91-1
+VERSION      := $(shell ./get_latest_version.sh)
 NAME         := dnsmasq
 DESC         := Dnsmasq server
 FULLDESC     := $(DESC) (DHCP, DNS, TFTP) $(VERSION)

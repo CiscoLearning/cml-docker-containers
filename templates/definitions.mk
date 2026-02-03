@@ -2,7 +2,7 @@ TOP_REL ?= ../..
 BASE := $(TOP_REL)/BUILD/debian/$(PKG)/var/lib/libvirt/images
 DEST := $(BASE)/virl-base-images
 NDEF := $(BASE)/node-definitions
-TAG  := $(shell echo $(VERSION) | tr '[:upper:]~.' '[:lower:]-')
+TAG  := $(shell echo $(VERSION) | tr '[:upper:]~.+:' '[:lower:]----')
 NTAG := $(NAME)-$(TAG)
 DNT  := $(DEST)/$(NTAG)
 

@@ -1,4 +1,4 @@
-VERSION      := 3.2.7-dfsg-1-deb13u2
+VERSION      := $(shell ./get_latest_version.sh)
 NAME         := radius
 DESC         := FreeRadius server
 FULLDESC     := $(DESC) $(VERSION)

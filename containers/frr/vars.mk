@@ -1,4 +1,4 @@
-VERSION      := 10.5.1-r0
+VERSION      := $(shell ./get_latest_version.sh)
 NAME         := frr
 DESC         := Free Range Routing
 FULLDESC     := $(DESC) (frr) $(VERSION)

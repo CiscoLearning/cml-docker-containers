@@ -1,5 +1,4 @@
-xrd/xrd-control-plane-container-x86*.tgz
-thousandeyes/te-ea.tgz
+containers/xrd/xrd-control-plane-container-x86*.tgz
 refplat-images-docker*.deb
 refplat-images-docker*.changes
 refplat-images-docker*.buildinfo
