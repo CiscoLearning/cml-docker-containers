@@ -46,6 +46,8 @@ _cache_fetch() {
   cat "$dest"
 }
 
+_cache_init
+
 case "$type" in
   deb)
     if [[ "$url" == *.gz ]]; then
@@ -59,7 +61,6 @@ case "$type" in
     ' | sort -V | tail -n1
     ;;
   apk)
-    _cache_init
     _cache_fetch "$url" | tar -xzO -f - APKINDEX 2>/dev/null | awk -F: -v package="$pkg" '
       $1 == "P" && $2 == package { p = 1 }
       p && $1 == "V" { print $2; p = 0 }
