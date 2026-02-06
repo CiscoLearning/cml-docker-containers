@@ -22,6 +22,7 @@ docker: $(DNT)/$(NTAG).tar.gz
 # Default image preparation commands
 define DEFAULT_PREPARE_IMAGE
 	docker buildx build . -t $(NAME):$(TAG) \
+		--driver=docker-container \
 		--platform linux/amd64 \
 		--load \
 		--build-arg uid=2000 \
