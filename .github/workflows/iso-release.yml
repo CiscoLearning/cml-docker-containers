@@ -49,7 +49,8 @@ jobs:
           yq --version
 
       - name: Install Crane
-        uses: imjasonh/setup-crane@v0.1
+        # uses: imjasonh/setup-crane@v0.1
+        uses: ./.github/actions/setup-crane
 
       - name: Create ISO artifacts via Makefile
         id: make_iso
