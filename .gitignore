@@ -1,3 +1,4 @@
+containers/*/metadata.json
 containers/xrd/xrd-control-plane-container-x86*.tgz
 refplat-images-docker*.deb
 refplat-images-docker*.changes

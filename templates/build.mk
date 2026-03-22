@@ -23,6 +23,7 @@ docker: $(DNT)/$(NTAG).tar.gz
 define DEFAULT_PREPARE_IMAGE
 	docker buildx build . -t $(NAME):$(TAG) \
 		--platform linux/amd64 \
+		--network host \
 		--output type=docker,rewrite-timestamp=true \
 		--provenance=false \
 		--metadata-file=metadata.json \
