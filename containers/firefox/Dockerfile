@@ -36,8 +36,12 @@ RUN apt-get update && \
 
 # prevent windows "Welcome to Firefox" and "Firefox privacy notice" tabs
 COPY policies.json /usr/lib/firefox/distribution/policies.json
-USER debian
 COPY i3config /home/debian/.config/i3/config
+RUN mkdir -p /var/run/dbus && \
+  ln -s /home/debian/.dbus-socket /var/run/dbus/system_bus_socket && \
+  chown -R debian:debian /home/debian/.config /var/run/dbus/system_bus_socket
+
+USER debian
 COPY start.sh /start.sh
 CMD ["/start.sh"]
 
