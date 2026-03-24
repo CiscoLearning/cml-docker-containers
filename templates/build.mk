@@ -23,6 +23,9 @@ docker: $(DNT)/$(NTAG).tar.gz
 define DEFAULT_PREPARE_IMAGE
 	docker buildx build . -t $(NAME):$(TAG) \
 		--platform linux/amd64 \
+		--output type=docker,rewrite-timestamp=true \
+		--provenance=false \
+		--metadata-file=metadata.json \
 		--load \
 		--build-arg uid=2000 \
 		--build-arg version=$(VERSION) \

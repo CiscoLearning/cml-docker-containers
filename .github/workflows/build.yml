@@ -13,6 +13,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Crane
+        # uses: imjasonh/setup-crane@v0.1
+        uses: ./.github/actions/setup-crane
+
       - name: Discover top-level containers (Dockerfile && not .disabled)
         id: discover
         run: |

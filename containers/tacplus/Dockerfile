@@ -1,6 +1,8 @@
 FROM debian:trixie-slim AS builder
 
 ARG version
+# This strips everything after the first hyphen
+ARG version_only=${version%%-*}
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -11,10 +13,10 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
-RUN curl -k -O "https://shrubbery.net/pub/tac_plus/tacacs-${version}.tar.gz" && tar xzf tacacs-${version}.tar.gz
+RUN curl -k -O "https://shrubbery.net/pub/tac_plus/tacacs-${version_only}.tar.gz" && tar xzf tacacs-${version_only}.tar.gz
 
-WORKDIR /opt/tacacs-${version}
-RUN ./configure --without-libwrap --prefix=/usr/local && make && make install && rm /opt/tacacs-${version}.tar.gz
+WORKDIR /opt/tacacs-${version_only}
+RUN ./configure --without-libwrap --prefix=/usr/local && make && make install && rm /opt/tacacs-${version_only}.tar.gz
 
 
 FROM debian:trixie-slim
