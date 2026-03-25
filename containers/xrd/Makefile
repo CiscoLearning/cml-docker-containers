@@ -12,7 +12,7 @@ PREPARE_IMAGE_CMD = \
 	  echo "required file missing, see README"; \
 	  exit 1; \
 	fi; \
-	tar zxvf $(XRD) ./$(TMPIMG); \
+	tar zxvf $(XRD) --wildcards --no-anchored $(TMPIMG); \
 	gunzip --stdout $(TMPIMG) | docker load; \
 	rm -f $(TMPIMG); \
 	docker tag ios-xr/xrd-control-plane:$(VERSION) $(NAME):$(TAG)
