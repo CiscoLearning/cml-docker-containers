@@ -9,4 +9,3 @@ BUILD/debian/refplat-images-docker
 BUILD/debian/refplat-images-docker.substvars
 BUILD/debian/debhelper-build-stamp
 BUILD/debian/files
-containers/**/metadata.json
