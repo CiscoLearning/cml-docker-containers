@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# usage: VERSION=$(bash latest.sh nginx)
+# usage: VERSION=$(bash latest.sh nginx [tag])
+# $1 = image name (required), $2 = tag to resolve (default: "latest")
 IMAGE=$1
+REF_TAG=${2:-latest}
 PROCS=15 # parallel xargs procs
 
 # redirect all "talk" to stderr so it doesn't pollute the variable
@@ -12,10 +14,10 @@ if [ -z "$IMAGE" ]; then
   exit 1
 fi
 
-# 1. get the target digest for 'latest'
-TARGET_SHA=$(crane digest "$IMAGE:latest" 2> /dev/null)
+# 1. get the target digest for the reference tag
+TARGET_SHA=$(crane digest "$IMAGE:$REF_TAG" 2> /dev/null)
 if [ $? -ne 0 ]; then
-  log "Error: Could not fetch digest for $IMAGE:latest"
+  log "Error: Could not fetch digest for $IMAGE:$REF_TAG"
   exit 1
 fi
 
