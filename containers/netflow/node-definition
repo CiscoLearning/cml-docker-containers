@@ -17,7 +17,6 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ]
@@ -80,7 +79,7 @@ boot:
     - READY
 ui:
   description: |
-    {{FULLDESC}}
+    Netflow daemon
   group: Others
   icon: server
   label: Netflow

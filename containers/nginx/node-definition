@@ -41,7 +41,6 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "env": [
                 "SOME_VAR=1",
                 "SOME_OTHER_VAR=nginx runs here"
@@ -98,7 +97,7 @@ pyats:
   os: linux
 ui:
   description: |
-    {{FULLDESC}}
+    Nginx web server
   group: Others
   icon: server
   label: Nginx

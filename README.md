@@ -69,7 +69,7 @@ make deb
 Inspect generated files and package:
 
 - Definitions and images: `BUILD/debian/refplat-images-docker/var/lib/libvirt/images/...` (uses `PKG`; default shown)
-- ISOs: `docker-refplat-images<SFX>-<TS>.iso` in repository root
+- ISOs: `refplat-<TS>-<TYPE>.iso` in repository root
 - Debian package: `*.deb`, `*.buildinfo`, `*.changelog`
 
 ## Dependencies
@@ -155,7 +155,7 @@ echo -extras > containers/nginx/iso-name
 
 # build split ISOs
 make iso
-# outputs: docker-refplat-images-<TS>.iso (main), docker-refplat-images-extras-<TS>.iso
+# outputs: refplat-<TS>-services.iso (main), refplat-<TS>-extras.iso
 ```
 
 Notes:
@@ -173,7 +173,7 @@ BUILD/debian/<PKG>/var/lib/libvirt/images/<...>
 ```
 
 - The Debian package is produced as `<package>.deb` (see `make deb`).
-- Split ISO images are produced as `docker-refplat-images<SFX>-<TS>.iso`.
+- Split ISO images are produced as `refplat-<TS>-<TYPE>.iso`.
 
 ISOs and .deb files are placed in the repository root. The generated tree
 mirrors the CML server layout so files may be copied to
@@ -276,7 +276,7 @@ This method ensures that the `docker-compose` application runs in its intended e
 
 ### IOS XRd
 
-XRd builds require a binary XRd container from [Cisco's software download page](https://software.cisco.com/download/home/286331236/type). Place the downloaded file (for example `xrd-control-plane-container-x86.<version>.tgz`) into the `containers/xrd/` directory and ensure `vars.mk` matches the version. Also, remove the `.disabled` file in that directory. The build process will extract and process that archive and, as a result, creates a reference platform ISO file.
+XRd builds require a binary XRd container from [Cisco's software download page](https://software.cisco.com/download/home/286331236/type). Place the downloaded file (for example `xrd-control-plane-container-x86.<version>.tgz`) into the `containers/xrd/` directory and ensure `vars.mk` matches the version. Also, remove the `.disabled` file in that directory. The build process will extract and process that archive and, as a result, creates a reference platform ISO file. XRd is disabled by default because the binary image must be obtained separately.
 
 > [!IMPORTANT]
 > To download the XRd image, a valid Cisco.com login and proper entitlement is required!
@@ -304,7 +304,7 @@ echo "-xrd" >containers/xrd/iso-name
 sudo make iso 
 
 # install ISO
-sudo copy-refplat-iso-to-disk.sh docker-refplat-images-xrd-*.iso 
+sudo copy-refplat-iso-to-disk.sh refplat-*-xrd.iso
 ```
 
 ### Netflow
@@ -313,6 +313,6 @@ Netflow depends on an older Debian package that is not present in modern distrib
 
 ### Splunk
 
-Splunk images are large and disabled by default. Consider keeping Splunk out of automated builds unless required. When creating ISOs, Splunk is put into its own ISO (using the `iso-name` file in the module dir).
+Splunk images are large. Consider keeping Splunk out of automated builds by placing a `.disabled` file in the module directory. When creating ISOs, Splunk is put into its own ISO (using the `iso-name` file in the module dir).
 
 ---

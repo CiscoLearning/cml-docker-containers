@@ -4,7 +4,7 @@
 # part of VIRL^2
 #
 
-id: {{NAME}}
+id: {{NODE_ID}}
 configuration:
   generator:
     driver: iosxrv9000
@@ -17,7 +17,6 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/first-boot.cfg,target=/etc/xrd/first-boot.cfg"
               ],
@@ -41,6 +40,7 @@ configuration:
                 "SETUID",
                 "SETPCAP",
                 "SYS_CHROOT",
+                "SYSLOG",
                 "IPC_LOCK",
                 "NET_ADMIN",
                 "SYS_ADMIN",
@@ -54,7 +54,7 @@ configuration:
                 "--device",
                 "/dev/net/tun",
                 "--security-opt",
-                "apparmor=unconfined",
+                "apparmor=xrd-unconfined",
                 "--security-opt",
                 "label=disable"
               ]
@@ -103,17 +103,17 @@ configuration:
           username cisco
           group root-lr
           group cisco-support
-          password cisco
+          secret cisco
           !
           username admin
           group root-lr
           group cisco-support
-          password cisco
+          secret cisco
           !
           username lab
           group root-lr
           group cisco-support
-          password cisco
+          secret cisco
           !
           end
 device:
@@ -195,7 +195,7 @@ pyats:
   config_extract_command: show running-config
 ui:
   description: |
-    {{FULLDESC}}
+    Cisco IOS XRd Router platform (control plane)
   group: Cisco
   icon: router
   label: IOS XRd

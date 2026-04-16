@@ -20,7 +20,6 @@ definitions: $(DNT) $(NDEF)
 				-e 's/{{DESC}}/$(DESC)/g' \
 				-e 's/{{FULLDESC}}/$(FULLDESC)/g' \
 				-e 's/{{NAME}}/$(NAME)/g' \
-				-e 's/{{VERSION}}/$(VERSION)/g' \
 				-e 's/{{TAG}}/$(TAG)/g' \
 				-e 's/{{NTAG}}/$(NTAG)/g' \
 				-e "s/{{SHA256}}/$$sha256/g" \
@@ -29,10 +28,7 @@ definitions: $(DNT) $(NDEF)
 			cat node-definition | sed \
 				-e 's/{{NAME}}/$(NAME)/g' \
 				-e 's/{{DESC}}/$(DESC)/g' \
-				-e 's/{{FULLDESC}}/$(FULLDESC)/g' \
-				-e 's/{{VERSION}}/$(VERSION)/g' \
 				-e "s/{{DATE}}/$$date/" \
-				-Ee 's#("image": )"\{\{IMAGENAMETAG\}\}"#\1"$(NAME):$(TAG)"#g' \
 			>$(NDEF)/$(NAME).yaml; \
 		fi; \
 	fi

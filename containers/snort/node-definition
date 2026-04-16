@@ -41,13 +41,16 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "env": [
                 "SOME_VAR=1",
                 "SOME_OTHER_VAR=snort runs here"
               ],
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
+              ],
+              "caps": [
+                "NET_ADMIN",
+                "NET_RAW"
               ]
             },
             "shell": "/bin/bash",
@@ -76,9 +79,9 @@ configuration:
           # use them. By default, only type=volume is allowed, see
           # /etc/default/docker-shim.env
           # Note: Volumes must exist to be usable and can be created via
-          # "docker volume create wwwdata" where wwwdata is the name
+          # "docker volume create snortdata" where snortdata is the name
           #
-          # type=volume,source=signatures,target=/wherever
+          # type=volume,source=snortdata,target=/wherever
         editable: true
 device:
   interfaces:
@@ -98,7 +101,7 @@ pyats:
   os: linux
 ui:
   description: |
-    {{FULLDESC}}
+    Snort3 IDS tutorial
   group: Others
   icon: server
   label: Snort

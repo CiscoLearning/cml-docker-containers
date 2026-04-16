@@ -6,7 +6,7 @@ include templates/pkg.mk
 LVIMAGES := BUILD/debian/$(PKG)/var/lib/libvirt/images
 
 # timestamp for ISO naming; can be overridden via make iso TS=...
-TS ?= $(shell date -u +%Y%m%d%H%M%S)
+TS ?= $(shell date -u +%Y%m%d)
  
 .PHONY: build $(SUBDIRS)
 build: $(SUBDIRS)
@@ -31,19 +31,19 @@ iso: build
 # Show mapping of modules to suffixes and predicted ISO names
 iso-list:
 	@set -e; \
-	suffixes=$$(for d in $(SUBDIRS); do [ -f "$$d/iso-name" ] && cat "$$d/iso-name" || echo ""; done | tr -d '\r' | sed -E 's/[[:space:]]+$$//' | sort -u); \
+	suffixes=$$(for d in $(SUBDIRS); do [ -f "$$d/iso-name" ] && cat "$$d/iso-name" || echo "services"; done | tr -d '\r' | sed -E 's/[[:space:]]+$$//' | sort -u); \
 	echo "Discovered suffix groups:"; \
-	for sfx in $$suffixes; do echo "  group: '"$$sfx"' -> docker-refplat-images"$$sfx"-$(TS).iso"; done; \
+	for sfx in $$suffixes; do echo "  group: '"$$sfx"' -> refplat-$(TS)-"$$sfx".iso"; done; \
 	echo "Module assignments:"; \
 	for d in $(SUBDIRS); do \
-		[ -f "$$d/iso-name" ] && sfx=$$(cat "$$d/iso-name" | tr -d '\n' | sed -E 's/[[:space:]]+$$//') || sfx=""; \
+		[ -f "$$d/iso-name" ] && sfx=$$(cat "$$d/iso-name" | tr -d '\n' | sed -E 's/[[:space:]]+$$//') || sfx="services"; \
 		echo "  $$d -> '"$$sfx"'"; \
 	done
 
 # Clean ISO outputs and staging trees
 clean-iso:
-	@rm -f docker-refplat-images*-$(TS).iso; \
-	rm -rf $(LVIMAGES)/iso-staging*;
+	@rm -f refplat-$(TS)-*.iso; \
+	rm -rf $(LVIMAGES)/iso-staging-*;
 
  
 .PHONY: deb

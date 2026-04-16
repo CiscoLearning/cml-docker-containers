@@ -17,28 +17,27 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
+              ],
+              "caps": [
+                "CHOWN",
+                "DAC_OVERRIDE",
+                "FOWNER",
+                "FSETID",
+                "KILL",
+                "MKNOD",
+                "NET_BIND_SERVICE",
+                "NET_RAW",
+                "SETFCAP",
+                "SETGID",
+                "SETPCAP",
+                "SETUID",
+                "SYS_CHROOT",
+                "NET_ADMIN",
+                "SYS_ADMIN"
               ]
             },
-            "caps": [
-              "CAP_CHOWN",
-              "CAP_DAC_OVERRIDE",
-              "CAP_FOWNER",
-              "CAP_FSETID", 
-              "CAP_KILL", 
-              "CAP_MKNOD", 
-              "CAP_NET_BIND_SERVICE", 
-              "CAP_NET_RAW", 
-              "CAP_SETFCAP", 
-              "CAP_SETGID", 
-              "CAP_SETPCAP", 
-              "CAP_SETUID", 
-              "CAP_SYS_CHROOT", 
-              "NET_ADMIN",
-              "SYS_ADMIN"
-            ],
             "day0cmd": [ "/bin/bash", "/boot.sh" ],
             "busybox": true
           }
@@ -95,9 +94,11 @@ boot:
   timeout: 30
   completed:
     - READY
+pyats:
+  os: linux
 ui:
   description: |
-    {{FULLDESC}}
+    Networking tools node
   group: Others
   icon: server
   label: Net-Tools

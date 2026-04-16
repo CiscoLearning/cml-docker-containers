@@ -17,26 +17,25 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/config/boot.sh",
                 "type=bind,source=cfg/node.cfg,target=/config/node.cfg",
                 "type=bind,source=cfg/protocols,target=/config/protocols"
               ],
               "caps": [
-                "CAP_CHOWN",
-                "CAP_DAC_OVERRIDE",
-                "CAP_FOWNER",
-                "CAP_FSETID", 
-                "CAP_KILL", 
-                "CAP_MKNOD", 
-                "CAP_NET_BIND_SERVICE", 
-                "CAP_NET_RAW", 
-                "CAP_SETFCAP", 
-                "CAP_SETGID", 
-                "CAP_SETPCAP", 
-                "CAP_SETUID", 
-                "CAP_SYS_CHROOT", 
+                "CHOWN",
+                "DAC_OVERRIDE",
+                "FOWNER",
+                "FSETID",
+                "KILL",
+                "MKNOD",
+                "NET_BIND_SERVICE",
+                "NET_RAW",
+                "SETFCAP",
+                "SETGID",
+                "SETPCAP",
+                "SETUID",
+                "SYS_CHROOT",
                 "NET_ADMIN",
                 "SYS_ADMIN"
               ],
@@ -52,7 +51,7 @@ configuration:
         editable: true
         content: |
           ! FRR Config generated on 2025-01-22 17:55
-          ! just an example -- You need to need to change it
+          ! just an example -- You need to change it
           !
           hostname frr-0
           !
@@ -91,7 +90,7 @@ configuration:
           # ip address add dev eth1 10.0.0.1/24
           # ip link set dev eth1 up
           exit 0
-      - name: protocols 
+      - name: protocols
         editable: true
         content: |
           # enable / disable needed routing protocols by adding / removing
@@ -191,7 +190,7 @@ pyats:
   config_extract_command: show run
 ui:
   description: |
-    {{FULLDESC}}
+    Free Range Routing (frr)
   group: Others
   icon: router
   label: FRR

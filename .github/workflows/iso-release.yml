@@ -56,11 +56,11 @@ jobs:
         id: make_iso
         run: |
           set -euo pipefail
-          ts=$(date -u +%Y%m%d%H%M%S)
+          ts=$(date -u +%Y%m%d)
           echo "Timestamp: ${ts}"
           make iso TS="${ts}"
           # collect all ISOs built for this timestamp
-          isos=$(ls -1 docker-refplat-images-*"${ts}".iso 2>/dev/null || true)
+          isos=$(ls -1 refplat-"${ts}"-*.iso 2>/dev/null || true)
           [ -n "${isos}" ] || { echo "No ISO files found for TS=${ts}"; exit 1; }
           echo "Found ISO files:" && printf "%s\n" ${isos}
           echo "ts=${ts}" >> "$GITHUB_OUTPUT"

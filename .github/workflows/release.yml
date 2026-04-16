@@ -155,7 +155,7 @@ jobs:
           export GNUPGHOME="${GNUPGHOME:-$HOME/.gnupg}"
           chmod 700 "$GNUPGHOME" || true
 
-          for f in *.deb *.changes *.buildinfo docker-refplat-images-*.tar.gz docker-refplat-images-*.iso; do
+          for f in *.deb *.changes *.buildinfo refplat-*.tar.gz refplat-*.iso; do
             [ -f "$f" ] || continue
             echo "Signing $f -> ${f}.asc"
             gpg --batch --yes --pinentry-mode loopback \
@@ -229,7 +229,7 @@ jobs:
         run: |
           set -euo pipefail
           cd artifacts
-          for f in *.deb *.changes *.buildinfo docker-refplat-images-*.tar.gz docker-refplat-images-*.iso *.asc; do
+          for f in *.deb *.changes *.buildinfo refplat-*.tar.gz refplat-*.iso *.asc; do
             [ -f "$f" ] || continue
             echo "Uploading $f via gh release upload"
             gh release upload "${RELEASE_TAG}" "$f" || echo "upload failed for $f"
