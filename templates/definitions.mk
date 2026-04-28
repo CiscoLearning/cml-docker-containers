@@ -11,9 +11,11 @@ definitions: $(DNT) $(NDEF)
 	@if [ -f ./.disabled ]; then \
 		echo "Skipping definitions in $(CURDIR): .disabled present"; \
 	else \
-		sha256=$$(docker image inspect -f '{{ index .Id }}' $(NAME):$(TAG) 2>/dev/null | cut -d':' -f2) || sha256=""; \
+		tarball=$(DNT)/$(NTAG).tar.gz; \
+		sha256=$$(tar xzf "$$tarball" manifest.json -O 2>/dev/null | \
+			python3 -c "import json,sys;c=json.load(sys.stdin)[0]['Config'];print(c.split('/')[-1].replace('.json',''))" 2>/dev/null) || sha256=""; \
 		if [ -z "$$sha256" ]; then \
-			echo "Image $(NAME):$(TAG) not found; skipping definitions"; \
+			echo "Tarball $$tarball not found or has no manifest; skipping definitions"; \
 		else \
 			date=$$(date +"%Y-%m-%d") && \
 			cat $(TOP_REL)/templates/image-definition.tmpl | sed \
