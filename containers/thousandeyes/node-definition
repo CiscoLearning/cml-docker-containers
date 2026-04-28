@@ -33,7 +33,6 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "caps": [
                 "AUDIT_WRITE",
                 "CHOWN",
@@ -105,7 +104,7 @@ boot:
     - READY
 ui:
   description: |
-    {{FULLDESC}}
+    ThousandEyes Enterprise Agent
   group: Cisco
   icon: server
   label: ThousandEyes Agent

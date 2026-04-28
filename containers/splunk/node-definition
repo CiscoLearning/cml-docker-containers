@@ -42,7 +42,6 @@ configuration:
         content: |-
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ]
@@ -62,8 +61,8 @@ configuration:
       - name: environment
         editable: true
         content: |-
-          SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
           SPLUNK_START_ARGS=--accept-license
+          SPLUNK_GENERAL_TERMS=--accept-sgt-current-at-splunk-com
           SPLUNK_PASSWORD=Cisc0123#
 device:
   interfaces:
@@ -78,7 +77,7 @@ boot:
     - Ansible playbook complete
 ui:
   description: |
-    {{FULLDESC}}
+    Splunk Enterprise
   group: Others
   icon: host
   label: Splunk

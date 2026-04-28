@@ -17,7 +17,6 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh",
                 "type=bind,source=cfg/dnsmasq.conf,target=/etc/dnsmasq.conf",
@@ -790,7 +789,7 @@ boot:
     - READY
 ui:
   description: |
-    {{FULLDESC}}
+    Dnsmasq server (DHCP, DNS, TFTP)
   group: Others
   icon: server
   label: Dnsmasq

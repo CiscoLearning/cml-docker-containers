@@ -58,16 +58,20 @@ MATCHES=$(crane ls "$IMAGE" | xargs -P $PROCS -I {} bash -c "get_digest_with_ret
 
 # ranking Logic:
 # 1. must start with a digit (kills 'latest', 'mainline', 'trixie')
-# 2. prefer tags WITHOUT dashes (prefer '1.29' over '1.29-trixie')
-# 3. sort by version logic (1.29 > 1.9)
+# 2. must contain a dot or be longer than 12 chars (kills bare hex digests)
+# 3. prefer tags WITHOUT dashes (prefer '1.29' over '1.29-trixie')
+# 4. sort by version logic (1.29 > 1.9)
 BEST_TAG=$(echo "$MATCHES" | grep -E '^[0-9]' |
+  grep -vE '^[0-9a-f]+$' |
   grep -v "-" |
   sort -V | tail -n 1)
 
 # fallback: If everything had a dash (e.g. only 1.29-trixie exists), take the
-# best versioned one
+# best versioned one (still excluding bare hex digests)
 if [ -z "$BEST_TAG" ]; then
-  BEST_TAG=$(echo "$MATCHES" | grep -E '^[0-9]' | sort -V | tail -n 1)
+  BEST_TAG=$(echo "$MATCHES" | grep -E '^[0-9]' |
+    grep -vE '^[0-9a-f]+$' |
+    sort -V | tail -n 1)
 fi
 
 # 4. final output to STDOUT

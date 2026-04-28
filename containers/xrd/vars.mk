@@ -1,4 +1,4 @@
 VERSION      := 26.1.1
-NAME         := ios-xrd-control-plane
+NAME         := xrd
 DESC         := Cisco IOS XRd
 FULLDESC     := $(DESC) Router platform (control plane) $(VERSION)

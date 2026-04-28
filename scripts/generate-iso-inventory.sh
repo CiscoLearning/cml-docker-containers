@@ -8,7 +8,7 @@ set -euo pipefail
 # - CONTAINERS_DIR: optional; defaults to "containers"
 #
 # Produces Markdown to stdout with an inventory per ISO group:
-# - Header per ISO: \n## docker-refplat-images<SFX>-<TS>.iso
+# - Header per ISO: \n## refplat-<TS>-<TYPE>.iso
 # - Table: Container | Description/Version | Artifacts | Size
 # - Description: YAML ui.description
 # - Artifacts include node-definition YAML and image tarball + image-definition YAML when present
@@ -65,14 +65,14 @@ mapfile -t SUFFIXES < <(for d in "$CONTAINERS_DIR"/*; do
   if [ -f "$d/iso-name" ]; then
     tr -d '\r\n' <"$d/iso-name" | trim_ws
   else
-    echo ""
+    echo "services"
   fi
 done | sort -u)
 
 # Generate Markdown
 printf "# ISO Inventory\n\n"
 for sfx in "${SUFFIXES[@]}"; do
-  iso_name="docker-refplat-images${sfx}-${TS}.iso"
+  iso_name="refplat-${TS}-${sfx}.iso"
   printf "## %s\n\n" "$iso_name"
   printf "| Container | Description/Version | Artifacts | Size |\n"
   printf "|---|---|---|---|\n"
@@ -83,7 +83,7 @@ for sfx in "${SUFFIXES[@]}"; do
     if [ -f "$d/iso-name" ]; then
       dsfx=$(tr -d '\r\n' <"$d/iso-name" | trim_ws)
     else
-      dsfx=""
+      dsfx="services"
     fi
     [ "$dsfx" = "$sfx" ] || continue
 

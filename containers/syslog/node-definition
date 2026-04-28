@@ -17,7 +17,6 @@ configuration:
         content: |
           {
             "docker": {
-              "image": "{{IMAGENAMETAG}}",
               "mounts": [
                 "type=bind,source=cfg/boot.sh,target=/boot.sh",
                 "type=bind,source=cfg/syslog-ng.conf,target=/etc/syslog-ng/syslog-ng.conf"
@@ -117,7 +116,7 @@ boot:
     - READY
 ui:
   description: |
-    {{FULLDESC}}
+    Syslog NG server
   group: Others
   icon: server
   label: Syslog

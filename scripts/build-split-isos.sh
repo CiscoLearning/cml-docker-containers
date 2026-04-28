@@ -18,13 +18,13 @@ fi
     if [ -f "${d}/iso-name" ]; then
       sfx=$(tr -d '\r\n' <"${d}/iso-name" | sed -E 's/[[:space:]]+$//')
     else
-      sfx=""
+      sfx="services"
     fi
     printf '%s\n' "$sfx"
   done
 ) | sort -u | while IFS= read -r sfx; do
 
-  staging="${IMAGES_DIR}/iso-staging${sfx}"
+  staging="${IMAGES_DIR}/iso-staging-${sfx}"
   nd="${staging}/node-definitions"
   vb="${staging}/virl-base-images"
   mkdir -p "${nd}" "${vb}"
@@ -34,7 +34,7 @@ fi
     if [ -f "${d}/iso-name" ]; then
       dsfx=$(tr -d '\r\n' <"${d}/iso-name" | sed -E 's/[[:space:]]+$//')
     else
-      dsfx=""
+      dsfx="services"
     fi
     [ "${dsfx}" = "${sfx}" ] || continue
 
@@ -64,7 +64,7 @@ fi
     done
   done
 
-  out_iso="docker-refplat-images${sfx}-${TS}.iso"
+  out_iso="refplat-${TS}-${sfx}.iso"
 
   echo "Creating ${out_iso} from ${staging}"
   xorriso -as mkisofs -V REFPLAT -r -J -follow-links -o "${out_iso}" "${staging}"
@@ -72,4 +72,4 @@ fi
 
 done
 
-ls -lh docker-refplat-images*-"${TS}".iso 2>/dev/null || true
+ls -lh refplat-"${TS}"-*.iso 2>/dev/null || true
