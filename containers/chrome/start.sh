@@ -58,38 +58,14 @@ esac
 dbus-daemon --nosyslog --fork --session --address=unix:path=$HOME/.dbus-socket
 export DBUS_SESSION_BUS_ADDRESS=unix:path=$HOME/.dbus-socket
 
-# start i3 and Chrome
-#   --headless \
-#   --remote-debugging-port=9222 \
+# start i3 and Chromium
 /usr/bin/i3 &
 
 cd $HOME
-/usr/bin/google-chrome &>chrome.log --disable-gpu --no-first-run --disable-dev-shm-usage $HOME_URL &
+/usr/bin/chromium &>chromium.log --disable-gpu --no-first-run --disable-dev-shm-usage $HOME_URL &
 
-# /usr/bin/google-chrome \
-#     --no-sandbox \
-#     --disable-gpu \
-#     --no-first-run \
-#     --disable-dev-shm-usage \
-#     --disable-software-rasterizer \
-#     --disable-extensions \
-#     --disable-background-networking \
-#     --disable-setuid-sandbox \
-#     --single-process \
-#     --no-zygote \
-#     --mute-audio \
-#     --disable-infobars \
-#     --disable-notifications \
-#     --disable-breakpad \
-#     --disable-features=TranslateUI \
-#     --disable-popup-blocking \
-#     --window-size=1920,1080 \
-#     --disable-crash-reporter \
-#     --use-gl=swiftshader \
-#     $HOME_URL &
-
-# wait for Chrome window
-while ! xdotool search --name "Chrome"; do
+# wait for Chromium window
+while ! xdotool search --name "Chromium"; do
     sleep 1
 done
 
@@ -100,5 +76,5 @@ echo "READY" >/dev/console
 sleep 2
 i3-msg fullscreen
 
-# wait for Chrome to exit
+# wait for Chromium to exit
 wait $!
