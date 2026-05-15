@@ -1,3 +1,85 @@
+refplat-images-docker (0.3.1) unstable; urgency=medium
+
+  * Open source compliance (CMLDEV-1123)
+    - chrome: switch from proprietary Google Chrome to Debian Chromium;
+      drop bundled Google APT signing key and apt-transport-https
+      dependency; track chromium package version dynamically from the
+      Debian Trixie repository; update node definition UI label and
+      description accordingly
+    - Remove the netflow container entirely; flow-tools only ships in
+      Debian Buster (archived) and the container had been disabled since
+      0.1.5
+
+ -- Tomas Mikuska <tmikuska@cisco.com>  Fri, 15 May 2026 19:55:00 +0200
+
+refplat-images-docker (0.3.0) unstable; urgency=medium
+
+  * CML 2.10 alignment: docker_tag moves to image definitions
+    - Remove "image" from config.json across all node definitions; the
+      runtime already prefers the image definition value when present
+    - Add docker_tag field to the image definition template
+    - Hardcode ui.description to version-less strings
+    - Standardize ISO naming to refplat-<YYYYMMDD>-<type>.iso (date-only
+      timestamp); update iso-name files to bare names (browser, splunk,
+      xrd)
+    - Extract SHA256 from the saved tarball manifest instead of
+      `docker image inspect` to avoid storage-driver-dependent mismatches
+      between CI and CML hosts
+    - Fix build.yml container discovery path; drop redundant
+      upload-artifact steps from iso-release.yml (releases use assets)
+
+  * Container fixes and defaults
+    - chrome / firefox: default RAM raised to 4096
+    - firefox: proper dbus socket setup
+    - freeRADIUS: capitalization fix (FreeRadius -> FreeRADIUS),
+      simplified configuration
+    - net-tools, frr: normalize Linux capability names (no CAP_ prefix)
+    - thousandeyes: explicit reference tag passed to latest.sh
+    - snort: drop caps (NET_ADMIN handled via day0, NET_RAW is in
+      Docker's default set)
+    - splunk, dnsmasq, frr: misc tidy-ups
+
+  * Build / CI
+    - templates/build.mk: add --network host to buildx (matches build
+      environment)
+    - scripts/latest.sh: accept a reference tag parameter (default
+      "latest") and filter out bare hex digests that broke Splunk version
+      resolution
+    - .github/workflows/release.yml: import GPG signing key without
+      requiring a passphrase (Ralph)
+    - .gitignore: track per-container metadata.json
+
+ -- Tomas Mikuska <tmikuska@cisco.com>  Thu, 07 May 2026 10:14:31 +0200
+
+refplat-images-docker (0.2.3) unstable; urgency=medium
+
+  * XRd: update to 26.1.1
+  * Remove now-duplicate .gitignore line
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Wed, 25 Mar 2026 11:09:26 +0100
+
+refplat-images-docker (0.2.2) unstable; urgency=medium
+
+  * New container: Snort3 (Cisco Talos IDS tutorial image)
+    - Add Snort container files and configuration
+
+  * Base image refresh: all containers moved to debian:trixie-slim
+    - Bump every container base to debian:trixie-slim (Tomas)
+    - Resolve package versions dynamically from upstream repos via the
+      consolidated scripts/get_version.sh helper (deb + apk index parsers
+      with local caching)
+    - Local setup-crane action for resolving Docker tags in CI
+    - Get dynamic Docker tags for prebuilt-image containers, with
+      version fix for tacplus
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Fri, 06 Feb 2026 16:34:56 +0100
+
+refplat-images-docker (0.2.1) unstable; urgency=medium
+
+  * README: expand IOS XRd section with detailed build instructions
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Tue, 28 Oct 2025 12:40:19 +0100
+
 refplat-images-docker (0.2.0) unstable; urgency=medium
 
   * touches on documentation and GH actions
