@@ -16,7 +16,6 @@
   - [Handling Multi-Container (Docker Compose) Solutions](#handling-multi-container-docker-compose-solutions)
   - [Special nodes](#special-nodes)
     - [IOS XRd](#ios-xrd)
-    - [Netflow](#netflow)
     - [Splunk](#splunk)
     <!--toc:end-->
 
@@ -306,10 +305,6 @@ sudo make iso
 # install ISO
 sudo copy-refplat-iso-to-disk.sh refplat-*-xrd.iso
 ```
-
-### Netflow
-
-Netflow depends on an older Debian package that is not present in modern distributions; Netflow is disabled by default.
 
 ### Splunk
 
