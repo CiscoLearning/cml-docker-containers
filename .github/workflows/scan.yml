@@ -1,0 +1,38 @@
+name: Scan container images for CVEs
+
+on:
+  schedule:
+    # Weekly, Monday 06:00 UTC. Catches CVEs disclosed since the last build.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      fail_on:
+        description: 'Severities that fail the workflow. Empty = report only.'
+        required: false
+        default: 'CRITICAL'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Build and scan all containers
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Crane
+        uses: ./.github/actions/setup-crane
+
+      - name: Build all containers
+        run: |
+          set -euo pipefail
+          make
+
+      - name: Scan images
+        uses: ./.github/actions/scan-images
+        with:
+          # Schedule runs gate on CRITICAL. Manual dispatch honours the input
+          # (defaults to CRITICAL too, can be set to '' for report-only).
+          fail_on: ${{ github.event_name == 'schedule' && 'CRITICAL' || inputs.fail_on }}
