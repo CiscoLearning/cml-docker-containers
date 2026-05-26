@@ -45,6 +45,22 @@ jobs:
             make -C "$c"
           done < container_list
 
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.6
+        with:
+          version: v0.70.0
+
+      - name: Scan container images for vulnerabilities
+        run: |
+          set -euo pipefail
+          echo "Scanning built images for CRITICAL/HIGH vulnerabilities..."
+          for img in $(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>'); do
+            echo "--- Scanning ${img} ---"
+            trivy image --severity CRITICAL,HIGH --exit-code 0 --no-progress "${img}" || true
+          done
+          echo "Scan complete (informational only, not blocking build)"
+        continue-on-error: true
+
       - name: Install packaging tools
         run: |
           sudo apt-get update
