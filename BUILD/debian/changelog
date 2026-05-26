@@ -1,6 +1,32 @@
+refplat-images-docker (0.3.2) unstable; urgency=medium
+
+  * Container hardening
+    - tacplus: proper TLS verification (drop `curl -k`), add
+      ca-certificates
+    - frr: drop `chmod 777` on /etc/frr*, use frr:frr ownership with
+      660/775 perms
+
+  * Build / CI hardening
+    - templates/build.mk: only set buildx `--network host` when proxy
+      env vars are present; drop redundant `--provenance=false`
+    - setup-crane action verifies the release tarball against upstream
+      checksums.txt
+
+  * Image vulnerability scanning
+    - new reusable composite action `.github/actions/scan-images`:
+      installs Trivy via the official setup-trivy action (pinned to
+      v0.2.6 / Trivy v0.70.0) and scans all locally-loaded images;
+      `--ignore-unfixed` applied when gating
+    - new `scan.yml` workflow runs weekly (Mon 06:00 UTC) and on
+      dispatch, gates on CRITICAL by default
+    - build.yml and iso-release.yml call the composite for non-blocking
+      CVE visibility on every run
+
+ -- Tomas Mikuska <tmikuska@cisco.com>  Tue, 26 May 2026 19:30:00 +0200
+
 refplat-images-docker (0.3.1) unstable; urgency=medium
 
-  * Open source compliance (CMLDEV-1123)
+  * Open source compliance
     - chrome: switch from proprietary Google Chrome to Debian Chromium;
       drop bundled Google APT signing key and apt-transport-https
       dependency; track chromium package version dynamically from the
