@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           containers=()
-          for d in ./*/; do
+          for d in ./containers/*/; do
             [ -d "$d" ] || continue
             dir="${d#./}"
             dir="${dir%/}"
