@@ -13,6 +13,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      - name: Free disk space (remove Android SDK)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Before ==="; df -h /
+          sudo rm -rf /usr/local/lib/android
+          echo "=== After ==="; df -h /
+
       - name: Install Crane
         # uses: imjasonh/setup-crane@v0.1
         uses: ./.github/actions/setup-crane
