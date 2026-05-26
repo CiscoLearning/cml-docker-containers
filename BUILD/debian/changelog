@@ -1,3 +1,34 @@
+refplat-images-docker (0.3.2) unstable; urgency=medium
+
+  * CI / build pipeline fixes
+    - build.yml: fix container discovery glob (`./*/` was looking at
+      the repo root; containers live under `./containers/*/`)
+    - build.yml and iso-release.yml: free ~14 GB by removing
+      /usr/local/lib/android (Android SDK) on the runner so
+      `dpkg-deb` doesn't crash with "No space left on device"
+
+  * scripts/latest.sh: bounded sequential digest walk
+    - was: enumerate every tag of the image in 15 parallel `crane
+      digest` calls. Broke on images with thousands of tags under
+      Docker Hub anonymous rate limits (nginx 1200+ tags, thousand-
+      eyes 314 + sigstore artefacts), and silently returned empty.
+    - now: filter to versioned-looking tags only (drop sigstore
+      .sig/.att/.sbom and bare hex digests), sort -V -r, and digest-
+      check at most LATEST_MAX_CHECKS=25 candidates sequentially
+      with 429 retry, short-circuiting on first match. Pass order
+      keyed off REF_TAG: dashed REF_TAGs (e.g. "latest-agent") check
+      qualified tags first; plain REF_TAGs check clean tags first.
+    - measured speedup: nginx 102s -> 4s, splunk 49s -> 4s, thousand-
+      eyes (previously failed in CI) -> 7s
+
+  * templates/build.mk: error out when VERSION is empty
+    - belt-and-suspenders for any latest.sh failure (network, future
+      regression). Without this guard, $(NAME):$(TAG) silently
+      becomes "$(NAME):", docker tag fails, and an empty tarball
+      ships in the .deb
+
+ -- Tomas Mikuska <tmikuska@cisco.com>  Tue, 26 May 2026 21:15:00 +0200
+
 refplat-images-docker (0.3.1) unstable; urgency=medium
 
   * Open source compliance (CMLDEV-1123)
