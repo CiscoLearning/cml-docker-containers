@@ -3,6 +3,8 @@
 # usage: VERSION=$(bash latest.sh IMAGE [REF_TAG])  -- default REF_TAG=latest
 # Resolves REF_TAG to a versioned tag matching its digest, via short-circuit walk.
 
+set -euo pipefail
+
 IMAGE=${1:-}
 REF_TAG=${2:-latest}
 MAX_CHECKS=25
