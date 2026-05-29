@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# usage: VERSION=$(bash latest.sh nginx [tag])
-# $1 = image name (required), $2 = tag to resolve (default: "latest")
-IMAGE=$1
-REF_TAG=${2:-latest}
-PROCS=15 # parallel xargs procs
+# usage: VERSION=$(bash latest.sh IMAGE [REF_TAG])  -- default REF_TAG=latest
+# Resolves REF_TAG to a versioned tag matching its digest, via short-circuit walk.
 
-# redirect all "talk" to stderr so it doesn't pollute the variable
+set -euo pipefail
+
+IMAGE=${1:-}
+REF_TAG=${2:-latest}
+MAX_CHECKS=25
+
 log() { echo "$@" >&2; }
 
 if [ -z "$IMAGE" ]; then
@@ -14,70 +16,62 @@ if [ -z "$IMAGE" ]; then
   exit 1
 fi
 
-# 1. get the target digest for the reference tag
-TARGET_SHA=$(crane digest "$IMAGE:$REF_TAG" 2> /dev/null)
-if [ $? -ne 0 ]; then
+# 1. resolve REF_TAG to a digest
+TARGET_SHA=$(crane digest "$IMAGE:$REF_TAG" 2>/dev/null)
+if [ -z "$TARGET_SHA" ]; then
   log "Error: Could not fetch digest for $IMAGE:$REF_TAG"
   exit 1
 fi
 
-# 2. function for xargs to use (retries on 429)
+# 2. retry-on-429 wrapper for a single digest call
 get_digest_with_retry() {
-  local img=$1
-  local tag=$2
-  local attempt=1
-  local max_attempts=4
-
-  while [ $attempt -le $max_attempts ]; do
-    # use --quiet or redirect crane's own stderr if it's too chatty
+  local img=$1 tag=$2 attempt=1 out status
+  while [ $attempt -le 4 ]; do
     out=$(crane digest "$img:$tag" 2>&1)
     status=$?
-
-    if [ $status -eq 0 ]; then
-      # format: tag<space>sha
-      echo "$tag $out"
-      return 0
-    elif echo "$out" | grep -q "429"; then
-      sleep $((attempt * 2))
-      ((attempt++))
-    else
-      return 1
-    fi
+    if [ $status -eq 0 ]; then echo "$out"; return 0; fi
+    echo "$out" | grep -q "429" || return 1
+    sleep $((attempt * 2))
+    attempt=$((attempt + 1))
   done
   return 1
 }
-export -f get_digest_with_retry
 
-log "fetching tags and matching digests (using parallel threads)..."
+# 3. list tags, filter to plausibly-versioned, sort newest first
+log "fetching tags and matching digests..."
+versioned=$(crane ls "$IMAGE" 2>/dev/null \
+  | grep -Ev '^sha256[-.:][0-9a-f]+(\.(sig|att|sbom))?$' \
+  | grep -vE '^[0-9a-f]{8,}$' \
+  | grep -E '^[0-9]' \
+  | grep -F '.' \
+  | sort -V -r \
+  | uniq)
 
-# 3. process tags
-# -P 5 keeps us under the radar for rate limits
-# we filter for the SHA, then find the 'best' version string
-MATCHES=$(crane ls "$IMAGE" | xargs -P $PROCS -I {} bash -c "get_digest_with_retry '$IMAGE' '{}'" |
-  grep "$TARGET_SHA" | awk '{print $1}')
+# 4. digest-check in two passes, short-circuit on first match (bounded by MAX_CHECKS)
+find_match() {
+  local list=$1 tag sha checked=0
+  while IFS= read -r tag; do
+    [ -n "$tag" ] || continue
+    [ "$checked" -ge "$MAX_CHECKS" ] && return 1
+    checked=$((checked + 1))
+    sha=$(get_digest_with_retry "$IMAGE" "$tag") || continue
+    [ "$sha" = "$TARGET_SHA" ] && { echo "$tag"; return 0; }
+  done <<<"$list"
+  return 1
+}
 
-# ranking Logic:
-# 1. must start with a digit (kills 'latest', 'mainline', 'trixie')
-# 2. must contain a dot or be longer than 12 chars (kills bare hex digests)
-# 3. prefer tags WITHOUT dashes (prefer '1.29' over '1.29-trixie')
-# 4. sort by version logic (1.29 > 1.9)
-BEST_TAG=$(echo "$MATCHES" | grep -E '^[0-9]' |
-  grep -vE '^[0-9a-f]+$' |
-  grep -v "-" |
-  sort -V | tail -n 1)
+# Pass order tracks REF_TAG: dashed -> qualified tags first, else clean tags first.
+no_dash=$(echo "$versioned" | grep -v -- '-')
+with_dash=$(echo "$versioned" | grep    -- '-')
+case "$REF_TAG" in
+  *-*) p1=$with_dash; p2=$no_dash ;;
+    *) p1=$no_dash;   p2=$with_dash ;;
+esac
+BEST_TAG=$(find_match "$p1") || BEST_TAG=$(find_match "$p2") || BEST_TAG=""
 
-# fallback: If everything had a dash (e.g. only 1.29-trixie exists), take the
-# best versioned one (still excluding bare hex digests)
-if [ -z "$BEST_TAG" ]; then
-  BEST_TAG=$(echo "$MATCHES" | grep -E '^[0-9]' |
-    grep -vE '^[0-9a-f]+$' |
-    sort -V | tail -n 1)
-fi
-
-# 4. final output to STDOUT
 if [ -n "$BEST_TAG" ]; then
   echo "$BEST_TAG"
 else
-  log "No versioned tag found matching latest."
+  log "No versioned tag found matching $REF_TAG."
   exit 1
 fi

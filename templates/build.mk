@@ -11,6 +11,12 @@ HTTPS_PROXY=
 NO_PROXY=
 
 include vars.mk
+
+# Fail on empty VERSION: docker tag $(NAME): would silently produce a broken tarball.
+ifeq ($(strip $(VERSION)),)
+$(error VERSION is empty for $(NAME); check vars.mk / scripts/latest.sh)
+endif
+
 include $(TOP_REL)/templates/definitions.mk
 include $(TOP_REL)/templates/clean.mk
 
