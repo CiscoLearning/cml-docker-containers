@@ -3,9 +3,12 @@ refplat-images-docker (0.3.2) unstable; urgency=medium
   * CI / build pipeline fixes
     - build.yml: fix container discovery glob (`./*/` was looking at
       the repo root; containers live under `./containers/*/`)
-    - build.yml and iso-release.yml: free ~14 GB by removing
-      /usr/local/lib/android (Android SDK) on the runner so
-      `dpkg-deb` doesn't crash with "No space left on device"
+    - build.yml and iso-release.yml: free ~25-30 GB on the
+      runner before container builds via a local composite
+      action vendored from MIT-licensed
+      jlumbroso/free-disk-space@v1.3.1 (org allowlist blocks
+      the upstream); avoids dh_builddeb crashing with
+      "No space left on device"
 
   * scripts/latest.sh: bounded sequential digest walk
     - was: enumerate every tag of the image in 15 parallel `crane
