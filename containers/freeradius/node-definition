@@ -30,7 +30,7 @@ configuration:
       - name: radiusd.conf
         editable: true
         content: |
-          # Basic freeRADIUS onfiguration
+          # Basic FreeRADIUS configuration
 
           prefix = /usr
           exec_prefix = /usr

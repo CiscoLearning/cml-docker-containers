@@ -8,12 +8,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y --no-install-recommends curl make gcc flex bison libwrap0-dev libnsl-dev libcrypt-dev libc6-dev && \
+  apt-get install -y --no-install-recommends ca-certificates curl make gcc flex bison libwrap0-dev libnsl-dev libcrypt-dev libc6-dev && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
-RUN curl -k -O "https://shrubbery.net/pub/tac_plus/tacacs-${version_only}.tar.gz" && tar xzf tacacs-${version_only}.tar.gz
+RUN curl -fsSL -O "https://shrubbery.net/pub/tac_plus/tacacs-${version_only}.tar.gz" && tar xzf tacacs-${version_only}.tar.gz
 
 WORKDIR /opt/tacacs-${version_only}
 RUN ./configure --without-libwrap --prefix=/usr/local && make && make install && rm /opt/tacacs-${version_only}.tar.gz

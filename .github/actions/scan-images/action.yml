@@ -1,0 +1,55 @@
+name: 'Scan container images'
+description: 'Install Trivy and scan all locally-loaded container images for CVEs'
+inputs:
+  severity:
+    description: 'Severities to report (comma-separated, passed to Trivy --severity)'
+    required: false
+    default: 'CRITICAL,HIGH'
+  fail_on:
+    description: 'Severities that fail the action. Empty string = never fail. When set, --ignore-unfixed is applied so vulnerabilities without an upstream fix do not block.'
+    required: false
+    default: ''
+  trivy_version:
+    description: 'Trivy binary version to install'
+    required: false
+    default: 'v0.70.0'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: aquasecurity/setup-trivy@v0.2.6
+      with:
+        version: ${{ inputs.trivy_version }}
+
+    - shell: bash
+      env:
+        SEVERITY: ${{ inputs.severity }}
+        FAIL_ON: ${{ inputs.fail_on }}
+      run: |
+        set -euo pipefail
+        echo "Trivy scan-images: report severities='${SEVERITY}', fail_on='${FAIL_ON:-<none>}'"
+
+        mapfile -t imgs < <(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>' || true)
+        if [ "${#imgs[@]}" -eq 0 ]; then
+          echo "WARN: no locally-loaded images to scan."
+          exit 0
+        fi
+
+        # Report pass: always non-blocking, prints all findings at requested severities.
+        for img in "${imgs[@]}"; do
+          echo "--- Scanning ${img} (report) ---"
+          trivy image --severity "${SEVERITY}" --exit-code 0 --no-progress "${img}" || true
+        done
+
+        # Gate pass: only runs when FAIL_ON is non-empty.
+        # --ignore-unfixed avoids blocking on CVEs the upstream hasn't patched yet.
+        if [ -n "${FAIL_ON}" ]; then
+          echo "Gating on fixable ${FAIL_ON} findings..."
+          gate_status=0
+          for img in "${imgs[@]}"; do
+            echo "--- Gating ${img} ---"
+            trivy image --severity "${FAIL_ON}" --ignore-unfixed --exit-code 1 --no-progress "${img}" \
+              || gate_status=$?
+          done
+          exit "${gate_status}"
+        fi

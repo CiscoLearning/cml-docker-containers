@@ -72,7 +72,7 @@ configuration:
           # -- These are understood by the start script
           # -- Homepage to open at start (needs network!)
           # HOME_URL=https://www.cisco.com/go/cml
-          # -- Wait additional time for network before starting Chrome
+          # -- Wait additional time for network before starting Chromium
           # WAIT=2
         editable: true
 device:
@@ -91,9 +91,9 @@ boot:
     - READY
 ui:
   description: |
-    Google Chrome stable
+    Chromium
   group: Others
   icon: host
-  label: Chrome
-  label_prefix: chrome-
+  label: Chromium
+  label_prefix: chromium-
   visible: true

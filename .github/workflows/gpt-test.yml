@@ -10,7 +10,7 @@ on:
 jobs:
   gpt-test:
     name: Test signing credentials
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

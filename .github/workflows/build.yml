@@ -57,6 +57,9 @@ jobs:
             make -C "$c"
           done < container_list
 
+      - name: Scan images (non-blocking baseline)
+        uses: ./.github/actions/scan-images
+
       - name: Install packaging tools
         run: |
           sudo apt-get update

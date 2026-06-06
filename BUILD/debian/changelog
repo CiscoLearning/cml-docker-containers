@@ -1,50 +1,17 @@
-refplat-images-docker (0.3.2) unstable; urgency=medium
-
-  * CI / build pipeline fixes
-    - build.yml: fix container discovery glob (`./*/` was looking at
-      the repo root; containers live under `./containers/*/`)
-    - build.yml and iso-release.yml: free ~25-30 GB on the
-      runner before container builds via a local composite
-      action vendored from MIT-licensed
-      jlumbroso/free-disk-space@v1.3.1 (org allowlist blocks
-      the upstream); avoids dh_builddeb crashing with
-      "No space left on device"
-
-  * scripts/latest.sh: bounded sequential digest walk
-    - was: enumerate every tag of the image in 15 parallel `crane
-      digest` calls. Broke on images with thousands of tags under
-      Docker Hub anonymous rate limits (nginx 1200+ tags, thousand-
-      eyes 314 + sigstore artefacts), and silently returned empty.
-    - now: filter to versioned-looking tags only (drop sigstore
-      .sig/.att/.sbom and bare hex digests), sort -V -r, and digest-
-      check at most LATEST_MAX_CHECKS=25 candidates sequentially
-      with 429 retry, short-circuiting on first match. Pass order
-      keyed off REF_TAG: dashed REF_TAGs (e.g. "latest-agent") check
-      qualified tags first; plain REF_TAGs check clean tags first.
-    - measured speedup: nginx 102s -> 4s, splunk 49s -> 4s, thousand-
-      eyes (previously failed in CI) -> 7s
-
-  * templates/build.mk: error out when VERSION is empty
-    - belt-and-suspenders for any latest.sh failure (network, future
-      regression). Without this guard, $(NAME):$(TAG) silently
-      becomes "$(NAME):", docker tag fails, and an empty tarball
-      ships in the .deb
-
- -- Tomas Mikuska <tmikuska@cisco.com>  Tue, 26 May 2026 21:15:00 +0200
-
 refplat-images-docker (0.3.1) unstable; urgency=medium
 
-  * Open source compliance (CMLDEV-1123)
-    - chrome: switch from proprietary Google Chrome to Debian Chromium;
-      drop bundled Google APT signing key and apt-transport-https
-      dependency; track chromium package version dynamically from the
-      Debian Trixie repository; update node definition UI label and
-      description accordingly
-    - Remove the netflow container entirely; flow-tools only ships in
-      Debian Buster (archived) and the container had been disabled since
-      0.1.5
+  * Drop netflow container (no viable upstream since Buster)
+  * CI / build fixes and OSS hardening (CMLDEV-1123)
+    - Fix container discovery; free runner disk before builds; bound
+      latest.sh digest resolution; fail on empty VERSION
+    - tacplus: verify TLS on source tarball download
+    - build.mk: --network host only when proxy env vars are set
+    - setup-crane: verify release tarball checksum before extract
+    - Trivy CVE scan on build.yml and iso-release.yml (report-only)
+    - Add chromium container (Debian Trixie); keep chrome (Google) alongside
+      with chrome disabled via .disabled (refplat default)
 
- -- Tomas Mikuska <tmikuska@cisco.com>  Fri, 15 May 2026 19:55:00 +0200
+ -- Tomas Mikuska <tmikuska@cisco.com>  Sat, 06 Jun 2026 12:00:00 +0200
 
 refplat-images-docker (0.3.0) unstable; urgency=medium
 

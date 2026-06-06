@@ -29,13 +29,13 @@ docker: $(DNT)/$(NTAG).tar.gz
 define DEFAULT_PREPARE_IMAGE
 	docker buildx build . -t $(NAME):$(TAG) \
 		--platform linux/amd64 \
-		--network host \
 		--output type=docker,rewrite-timestamp=true \
 		--provenance=false \
 		--metadata-file=metadata.json \
 		--load \
 		--build-arg uid=2000 \
 		--build-arg version=$(VERSION) \
+		$(if $(or $(HTTP_PROXY),$(HTTPS_PROXY)),--network host) \
 		$(if $(HTTP_PROXY), --build-arg HTTP_PROXY=$(HTTP_PROXY)) \
 		$(if $(HTTPS_PROXY), --build-arg HTTPS_PROXY=$(HTTPS_PROXY)) \
 		$(if $(NO_PROXY), --build-arg NO_PROXY=$(NO_PROXY))

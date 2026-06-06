@@ -1,4 +1,4 @@
-VERSION      := $(shell bash ../../scripts/get_version.sh deb "https://deb.debian.org/debian/dists/trixie/main/binary-amd64/Packages.gz" "chromium")
+VERSION      := $(shell bash ../../scripts/get_version.sh deb "https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages" "google-chrome-stable")
 NAME         := chrome
-DESC         := Chromium
+DESC         := Google Chrome stable
 FULLDESC     := $(DESC) $(VERSION)

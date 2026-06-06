@@ -100,7 +100,7 @@ If you only need to build images (no Debian package, no ISOs), you only need `ma
 ## How discovery & selection work
 
 - Discovery: the build system (and CI) scans `containers/` subdirectories for a `Dockerfile`. Each such directory is treated as a container specification.
-- Skip / opt-out: to exclude a container from builds (both local and CI), place an empty file named `.disabled` in that container directory (for example: `chrome/.disabled`). The top-level Makefile and per-directory recipes honor this file and will skip building and definition generation, printing a clear message.
+- Skip / opt-out: to exclude a container from builds (both local and CI), place an empty file named `.disabled` in that container directory (for example: `containers/splunk/.disabled`). The top-level Makefile and per-directory recipes honor this file and will skip building and definition generation, printing a clear message. Refplat ships `chromium` by default; `containers/chrome` carries `.disabled` (remove it to build Google Chrome; add `.disabled` to `chromium` to ship Chrome instead).
 - Output layout: builders and templates create the YAML files and image tarballs under `BUILD/debian/<PKG>/var/lib/libvirt/images/...` so the structure matches what CML expects on the server (default `PKG=refplat-images-docker`).
 
 ## Building (local development)

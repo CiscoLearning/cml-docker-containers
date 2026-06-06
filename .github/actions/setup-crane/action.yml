@@ -51,7 +51,16 @@ runs:
         tmp=$(mktemp -d)
         cd ${tmp}
         fname="go-containerregistry_${os}_${arch}.tar.gz"
+        checksums="checksums.txt"
         curl -o "$fname" -fsSL --retry 5 --retry-delay 1 --retry-all-errors "${url}/${fname}"
+        curl -o "$checksums" -fsSL --retry 5 --retry-delay 1 --retry-all-errors "${url}/${checksums}"
+        echo "Verifying checksum for ${fname}..."
+        line=$(awk -v f="$fname" '$2 == f {print; exit}' "$checksums")
+        if [ -z "${line}" ]; then
+          echo "ERROR: ${fname} not found in checksums.txt" >&2
+          exit 1
+        fi
+        printf '%s\n' "${line}" | sha256sum --check -
         tar xzf "$fname" ${out}
         chmod +x ${tmp}/${out}
         PATH=${PATH}:${tmp}

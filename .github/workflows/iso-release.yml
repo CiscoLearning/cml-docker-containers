@@ -79,6 +79,9 @@ jobs:
           isos_json=$(jq -nc '$ARGS.positional' --args ${isos})
           echo "isos_json=${isos_json}" >> "$GITHUB_OUTPUT"
 
+      - name: Scan images (non-blocking baseline)
+        uses: ./.github/actions/scan-images
+
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v6
