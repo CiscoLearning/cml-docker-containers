@@ -46,7 +46,6 @@ configuration:
                 "type=bind,source=cfg/boot.sh,target=/boot.sh"
               ]
             },
-            "privileged": true,
             "shell": "/bin/bash",
             "day0cmd": [ "/bin/bash", "/boot.sh" ],
             "busybox": true
