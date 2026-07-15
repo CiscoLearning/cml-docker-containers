@@ -179,13 +179,13 @@ general:
 schema_version: 0.0.1
 sim:
   linux_native:
-    cpus: 1
-    ram: 2048
+    cpus: 2
+    ram: 3072
     driver: iosxrv9000
     libvirt_domain_driver: docker
     cpu_limit: 100
 boot:
-  timeout: 3600
+  timeout: 60
   completed:
     - '--- Administrative User Dialog ---'
     - '%MGBL-CVAC-4-CONFIG_DONE'
