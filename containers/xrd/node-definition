@@ -7,7 +7,7 @@
 id: {{NODE_ID}}
 configuration:
   generator:
-    driver: iosxrv9000
+    driver: xrd
   provisioning:
     volume_name: cfg
     media_type: raw
