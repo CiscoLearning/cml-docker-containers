@@ -181,7 +181,7 @@ sim:
     libvirt_domain_driver: docker
     cpu_limit: 100
 boot:
-  timeout: 30
+  timeout: 5
   completed:
     - READY
 pyats:

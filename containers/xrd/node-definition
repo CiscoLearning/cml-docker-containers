@@ -189,7 +189,7 @@ boot:
   timeout: 60
   completed:
     - '--- Administrative User Dialog ---'
-    - '%MGBL-CVAC-4-CONFIG_DONE'
+    - 'User Access Verification'
     - '%INFRA-ZTP-4-EXITED'
 pyats:
   os: iosxr

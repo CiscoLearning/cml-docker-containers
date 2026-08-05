@@ -72,6 +72,7 @@ device:
     physical:
       - eth0
     serial_ports: 2
+    default_console: 1
 inherited:
   image:
     ram: true
@@ -102,6 +103,8 @@ boot:
   completed:
     - ThousandEyes Agent starting up
     - READY
+pyats:
+  os: linux
 ui:
   description: |
     ThousandEyes Enterprise Agent
