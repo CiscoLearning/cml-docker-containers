@@ -16,7 +16,8 @@ PREPARE_IMAGE_CMD = \
 	tar zxvf $(XRD) --wildcards --no-anchored $(TMPIMG); \
 	gunzip --stdout $(TMPIMG) | docker load; \
 	rm -f $(TMPIMG); \
-	docker tag ios-xr/xrd-control-plane:$(VERSION) $(NAME):$(TAG)
+	docker tag ios-xr/xrd-control-plane:$(VERSION) $(NAME):$(TAG); \
+	docker tag ios-xr/xrd-control-plane:$(VERSION) $(DOCKER_IMAGE):$(TAG)
 
 # The Docker image from Cisco is ios-xrd-control-plane but the CML node type
 # is xrd (NAME=xrd).  After the standard build produces xrd-* artifacts,
