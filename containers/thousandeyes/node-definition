@@ -40,7 +40,6 @@ configuration:
                 "FOWNER",
                 "FSETID",
                 "KILL",
-                "MKNOD",
                 "NET_BIND_SERVICE",
                 "NET_RAW",
                 "SETFCAP",
@@ -49,8 +48,7 @@ configuration:
                 "SETPCAP",
                 "SYS_CHROOT",
                 "IPC_LOCK",
-                "NET_ADMIN",
-                "SYS_ADMIN"
+                "NET_ADMIN"
               ],
               "misc_args": [
                 "--memory-swap=2g",

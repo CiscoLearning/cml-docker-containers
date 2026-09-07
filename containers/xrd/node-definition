@@ -192,6 +192,7 @@ boot:
     - '%INFRA-ZTP-4-EXITED'
 pyats:
   os: iosxr
+  series: iosxrv9k
   config_extract_command: show running-config
 ui:
   description: |
