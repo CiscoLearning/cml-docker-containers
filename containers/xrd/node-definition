@@ -94,8 +94,7 @@ configuration:
               "GigabitEthernet0/0/0/30": "eth31"
             },
             "shell": "/bin/bash",
-            "busybox": true,
-            "writable_resolv_conf": true
+            "busybox": true
           }
       - name: first-boot.cfg
         editable: true
