@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 TEST_VERBOSE=${TEST_VERBOSE:-1}
-# shellcheck source=../scripts/latest-functions.sh
+# shellcheck disable=SC1091
 source "$ROOT/scripts/latest-functions.sh"
 
 run_case() {

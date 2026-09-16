@@ -4,7 +4,7 @@
 # SNAPSHOT is newline-separated: tag<TAB>digest.
 refine_alias() {
   local alias=$1 target_sha=$2 snapshot=$3
-  local base suffix line cand digest rest matches
+  local base suffix cand digest rest matches
   base=${alias%%-*}
   suffix=${alias#"$base"}
 

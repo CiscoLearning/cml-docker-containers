@@ -55,6 +55,7 @@ sed_escape() {
 
 # Helper: sanitize text for Markdown table cell
 md_sanitize() {
+  # shellcheck disable=SC2016
   sed -E 's/\|/\\|/g; s/`/\\`/g' | tr '\n' ' ' | sed -E 's/[[:space:]]+/ /g' | sed -E 's/^[[:space:]]+|[[:space:]]+$//g'
 }
 
@@ -63,7 +64,7 @@ mapfile -t SUFFIXES < <(for d in "$CONTAINERS_DIR"/*; do
   [ -d "$d" ] || continue
   [ -f "$d/.disabled" ] && continue
   if [ -f "$d/iso-name" ]; then
-    echo "$(tr -d '\r\n' <"$d/iso-name" | trim_ws)"
+    tr -d '\r\n' <"$d/iso-name" | trim_ws
   else
     echo "services"
   fi
@@ -144,6 +145,7 @@ for sfx in "${SUFFIXES[@]}"; do
           if command -v numfmt >/dev/null 2>&1; then
             size_disp=$(numfmt --to=iec --suffix=B "$bytes" 2>/dev/null || echo "$bytes B")
           else
+            # shellcheck disable=SC2012
             size_disp=$(ls -lh "$IMAGES_DIR/$img_tgz_rel" | awk '{print $5}')
           fi
         fi

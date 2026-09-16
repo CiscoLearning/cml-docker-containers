@@ -33,8 +33,8 @@ _cache_age() {
 
 _cache_fetch() {
   local url="$1"
-  local dest="$(_cache_get "$url")"
-  local tmp age
+  local dest tmp age
+  dest=$(_cache_get "$url")
   age=$(_cache_age "$dest")
 
   if [[ "$age" -lt "$CACHE_TTL" ]] && [[ -s "$dest" ]]; then

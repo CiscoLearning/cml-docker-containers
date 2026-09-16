@@ -76,7 +76,7 @@ cache_hit() {
 
 failed_fetch_not_cached() {
   local index=$TMPDIR/missing-packages.txt
-  ! run_get_version deb "file://$index" demo >/dev/null 2>&1
+  run_get_version deb "file://$index" demo >/dev/null 2>&1 && return 1
   printf 'Package: demo\nVersion: 2.0\n' >"$index"
   assert_eq 2.0 "$(run_get_version deb "file://$index" demo)"
 }

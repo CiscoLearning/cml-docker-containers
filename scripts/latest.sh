@@ -82,6 +82,7 @@ BEST_TAG=$(find_match "$p1") || BEST_TAG=$(find_match "$p2") || BEST_TAG=""
 
 # A series alias ("1.31") hides its patch number. Resolve it only when the
 # candidate has the same digest as the reference tag.
+# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/latest-functions.sh"
 
 if [ -n "$BEST_TAG" ]; then
