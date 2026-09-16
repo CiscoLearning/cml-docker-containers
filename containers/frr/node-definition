@@ -28,7 +28,6 @@ configuration:
                 "FOWNER",
                 "FSETID",
                 "KILL",
-                "MKNOD",
                 "NET_BIND_SERVICE",
                 "NET_RAW",
                 "SETFCAP",
