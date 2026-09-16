@@ -1,0 +1,15 @@
+P:demo
+V:1.2.0-r0
+A:x86_64
+
+P:demo
+V:1.10.0-r0
+A:x86_64
+
+P:other
+V:99.0-r0
+A:x86_64
+
+P:demo-tools
+V:7.0-r0
+A:x86_64

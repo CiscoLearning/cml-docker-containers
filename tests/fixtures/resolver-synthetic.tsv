@@ -1,0 +1,10 @@
+# Synthetic digest relationships for resolver behavior tests.
+# tag	digest
+1.13	sha256:alias-nginx-113
+1.13.8	sha256:alias-nginx-113
+1.13.9	sha256:other-nginx-1139
+1.13-alpine	sha256:alias-nginx-113-alpine
+1.13.9-alpine	sha256:alias-nginx-113-alpine
+10.4	sha256:alias-splunk-104
+10.4.2	sha256:other-splunk-1042
+10.4.3	sha256:alias-splunk-104

@@ -57,6 +57,9 @@ jobs:
             make -C "$c"
           done < container_list
 
+      - name: Run tests
+        run: make test
+
       - name: Scan images (non-blocking baseline)
         uses: ./.github/actions/scan-images
 

@@ -1,0 +1,19 @@
+Package: demo
+Version: 1.2.0
+Architecture: amd64
+
+Package: demo
+Version: 1.10.0
+Architecture: amd64
+
+Package: other
+Version: 99.0
+Architecture: amd64
+
+Package: demo-tools
+Version: 7.0
+Architecture: amd64
+
+Package: demo
+Version: 1.3~rc1
+Architecture: amd64
