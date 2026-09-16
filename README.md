@@ -134,6 +134,7 @@ make iso
 - Per-container Makefiles are symlinks to `../templates/build.mk`. Use an existing container (for example `containers/chrome/` or `containers/nginx/`) as a template when adding a new container.
 - If a `.disabled` file exists in a container directory, `make -C <dir>` will skip building that container and print a message.
 - Modules may override image preparation via `PREPARE_IMAGE_CMD` in their `Makefile`. This command replaces the default `docker buildx` step (e.g., pulling and tagging a pre-built image).
+- Modules with a runtime image name different from `NAME` may override `IMAGE_TO_SAVE` in their `Makefile`; it defaults to `$(NAME):$(TAG)` and controls the image reference exported into the image tarball.
 
 ## ISO splitting (optional)
 

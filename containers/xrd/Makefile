@@ -4,6 +4,7 @@ include $(TOP_REL)/templates/build.mk
 
 DOCKER_IMAGE := ios-xrd-control-plane
 DOCKER_NTAG  := $(DOCKER_IMAGE)-$(TAG)
+IMAGE_TO_SAVE := $(DOCKER_IMAGE):$(TAG)
 
 XRD := xrd-control-plane-container-x86.$(VERSION).tgz
 TMPIMG := xrd-control-plane-container-x64.dockerv1.tgz

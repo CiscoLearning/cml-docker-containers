@@ -25,6 +25,9 @@ include $(TOP_REL)/templates/clean.mk
 # Submodules can set PREPARE_IMAGE_CMD to override the default build commands.
 docker: $(DNT)/$(NTAG).tar.gz
 
+# Image reference to export; modules may use a runtime-facing name.
+IMAGE_TO_SAVE ?= $(NAME):$(TAG)
+
 # Default image preparation commands
 define DEFAULT_PREPARE_IMAGE
 	docker buildx build . -t $(NAME):$(TAG) \
@@ -47,7 +50,7 @@ $(DNT)/$(NTAG).tar.gz: Dockerfile | $(DNT)
 	else \
 		echo "Preparing image for $(NAME):$(TAG)"; \
 		$(if $(PREPARE_IMAGE_CMD),$(PREPARE_IMAGE_CMD),$(DEFAULT_PREPARE_IMAGE)); \
-		docker save $(NAME):$(TAG) | gzip - > "$@"; \
+		docker save $(IMAGE_TO_SAVE) | gzip - > "$@"; \
 	fi
 
 .PHONY: build
