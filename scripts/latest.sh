@@ -69,7 +69,32 @@ case "$REF_TAG" in
 esac
 BEST_TAG=$(find_match "$p1") || BEST_TAG=$(find_match "$p2") || BEST_TAG=""
 
+# 5. a series alias ("1.31") carries the newest patch release of that series but
+# hides its number, so the version, and the image definition id derived from it,
+# would sort below an older but fully numbered build. Replace it with the highest
+# published tag that extends it ("1.31.6").
+refine_alias() {
+  local tag=$1 base suffix cand rest matches
+  base=${tag%%-*}
+  suffix=${tag#"$base"}
+  matches=""
+  while IFS= read -r cand; do
+    [ -n "$cand" ] || continue
+    rest=${cand%"$suffix"}
+    [ "$rest$suffix" = "$cand" ] || continue
+    case "$rest" in "$base".*) ;; *) continue ;; esac
+    echo "${rest#"$base".}" | grep -qE '^[0-9]+(\.[0-9]+)*$' || continue
+    matches="$matches$cand"$'\n'
+  done <<<"$versioned"
+  [ -n "$matches" ] || return 1
+  echo "$matches" | grep -v '^$' | sort -V -r | head -1
+}
+
 if [ -n "$BEST_TAG" ]; then
+  if REFINED=$(refine_alias "$BEST_TAG") && [ -n "$REFINED" ]; then
+    log "refining series alias $BEST_TAG to $REFINED"
+    BEST_TAG=$REFINED
+  fi
   echo "$BEST_TAG"
 else
   log "No versioned tag found matching $REF_TAG."
