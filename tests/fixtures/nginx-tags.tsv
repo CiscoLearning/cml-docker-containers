@@ -1,0 +1,9 @@
+# Sample captured from docker.io/library/nginx on 2026-09-16.
+# tag	digest
+latest	sha256:d0d674272be3be36f9a13d79194fa0db5aa630ab3ede9bec459d12f67370aaef
+1.13	sha256:b1d09e9718890e6ebbbd2bc319ef1611559e30ce1b6f56b2e3b479d9da51dc35
+1.13.0	sha256:12d30ce421ad530494d588f87b2328ddc3cae666e77ea1ae5ac3a6661e52cde6
+1.13.1	sha256:72c7191585e9b79cde433c89955547685db00f3a8595a750339549f6acef7702
+1.13.9	sha256:f6e250eaa36af608af9ed1e4751f063f0ca0f5310b1a5d3ad9583047256f37f6
+1.13-alpine	sha256:sample-nginx-113-alpine
+1.13.9-alpine	sha256:sample-nginx-1139-alpine

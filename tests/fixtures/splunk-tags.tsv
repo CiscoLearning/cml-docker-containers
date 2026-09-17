@@ -1,0 +1,13 @@
+# Sample captured from docker.io/splunk/splunk on 2026-09-16.
+# tag	digest
+latest	sha256:cc3a3efe2509fa31f67d4aa20dde7118886babf9a0930f197ef996d513c44834
+10.4	sha256:cc3a3efe2509fa31f67d4aa20dde7118886babf9a0930f197ef996d513c44834
+10.4-rhel9	sha256:splunk-104-rhel9
+10.4.0	sha256:splunk-1040
+10.4.0-rhel9	sha256:splunk-1040-rhel9
+10.4.1	sha256:splunk-1041
+10.4.1-rhel9	sha256:splunk-1041-rhel9
+10.4.2	sha256:splunk-1042
+10.4.2-rhel9	sha256:splunk-1042-rhel9
+10.4.3	sha256:cc3a3efe2509fa31f67d4aa20dde7118886babf9a0930f197ef996d513c44834
+10.4.3-rhel9	sha256:splunk-1043-rhel9

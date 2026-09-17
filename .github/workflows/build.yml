@@ -29,6 +29,17 @@ jobs:
         # uses: imjasonh/setup-crane@v0.1
         uses: ./.github/actions/setup-crane
 
+      - name: Install shell tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends shellcheck shfmt
+
+      - name: Check shell formatting
+        run: make format-check
+
+      - name: ShellCheck
+        run: make lint
+
       - name: Discover top-level containers (Dockerfile && not .disabled)
         id: discover
         run: |
@@ -56,6 +67,9 @@ jobs:
             echo "=== Building: $c ==="
             make -C "$c"
           done < container_list
+
+      - name: Run tests
+        run: make test
 
       - name: Scan images (non-blocking baseline)
         uses: ./.github/actions/scan-images

@@ -33,8 +33,8 @@ _cache_age() {
 
 _cache_fetch() {
   local url="$1"
-  local dest="$(_cache_get "$url")"
-  local age
+  local dest tmp age
+  dest=$(_cache_get "$url")
   age=$(_cache_age "$dest")
 
   if [[ "$age" -lt "$CACHE_TTL" ]] && [[ -s "$dest" ]]; then
@@ -42,7 +42,17 @@ _cache_fetch() {
     return 0
   fi
 
-  curl -s "$url" > "$dest"
+  tmp=$(mktemp "${dest}.tmp.XXXXXX")
+  if ! curl --fail --silent --show-error "$url" >"$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  if [[ ! -s "$tmp" ]]; then
+    rm -f "$tmp"
+    echo "Empty response from $url" >&2
+    return 1
+  fi
+  mv "$tmp" "$dest"
   cat "$dest"
 }
 

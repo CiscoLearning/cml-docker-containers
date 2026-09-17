@@ -8,8 +8,28 @@ LVIMAGES := BUILD/debian/$(PKG)/var/lib/libvirt/images
 # timestamp for ISO naming; can be overridden via make iso TS=...
 TS ?= $(shell date -u +%Y%m%d)
  
-.PHONY: build $(SUBDIRS)
+SHELL_FILES := $(shell find scripts tests -type f -name '*.sh' -print 2>/dev/null)
+
+.PHONY: build test format format-check lint $(SUBDIRS)
 build: $(SUBDIRS)
+
+.PHONY: format
+format:
+	@shfmt -w -i 2 -ci $(SHELL_FILES)
+
+.PHONY: format-check
+format-check:
+	@shfmt -d -i 2 -ci $(SHELL_FILES)
+
+.PHONY: lint
+lint:
+	@shellcheck -x -P . $(SHELL_FILES)
+
+.PHONY: test
+test:
+	@TEST_VERBOSE="$(if $(TEST_VERBOSE),$(TEST_VERBOSE),1)" tests/latest-functions-test.sh
+	@TEST_VERBOSE="$(if $(TEST_VERBOSE),$(TEST_VERBOSE),1)" tests/get-version-test.sh
+	@TEST_VERBOSE="$(if $(TEST_VERBOSE),$(TEST_VERBOSE),1)" tests/latest-test.sh
  
 $(SUBDIRS):
 	$(MAKE) -C $@

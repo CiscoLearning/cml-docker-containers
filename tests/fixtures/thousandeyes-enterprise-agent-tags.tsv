@@ -1,0 +1,11 @@
+# Sample captured from docker.io/thousandeyes/enterprise-agent on 2026-09-16.
+# tag	digest
+latest-agent	sha256:alias-te-agent
+0.16.21-1707836787-agent	sha256:te-1621-1707836787
+0.16.21-1709162383-agent	sha256:te-1621-1709162383
+0.16.21-1710370811-agent	sha256:te-1621-1710370811
+0.16.21-1711474636-agent	sha256:te-1621-1711474636
+0.16.21-1712595962-agent	sha256:te-1621-1712595962
+0.16.24-1713822565-agent	sha256:alias-te-agent
+0.16.21-1707836787-agent-with-browserbot	sha256:te-browserbot-1621
+0.16.24-1713822565-agent-with-browserbot	sha256:te-browserbot-1624
