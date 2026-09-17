@@ -10,14 +10,16 @@ inputs:
     required: false
     default: ''
   trivy_version:
-    description: 'Trivy binary version to install'
+    description: 'Pinned Trivy release tag to install'
     required: false
-    default: 'v0.70.0'
+    # setup-trivy resolves this as a GitHub release tag; do not replace with the source SHA.
+    default: 'v0.74.0'
 
 runs:
   using: 'composite'
   steps:
-    - uses: aquasecurity/setup-trivy@v0.2.6
+    # v0.2.6; pin the installer action while keeping the Trivy release pinned above.
+    - uses: aquasecurity/setup-trivy@3fb12ec12f41e471780db15c232d5dd185dcb514
       with:
         version: ${{ inputs.trivy_version }}
 

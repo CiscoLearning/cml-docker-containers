@@ -110,15 +110,15 @@ runs:
           printSeparationLine '=' 80
           echo "${caption}"
           echo ""
-          echo "$ dh -h /"
+          echo "$ df -h /"
           echo ""
           df -h /
-          echo "$ dh -a /"
+          echo "$ df -ha /"
           echo ""
-          df -a /
-          echo "$ dh -a"
+          df -ha /
+          echo "$ df -ha"
           echo ""
-          df -a
+          df -ha
           printSeparationLine '=' 80
         }
 

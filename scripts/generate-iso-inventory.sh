@@ -64,7 +64,7 @@ mapfile -t SUFFIXES < <(for d in "$CONTAINERS_DIR"/*; do
   [ -d "$d" ] || continue
   [ -f "$d/.disabled" ] && continue
   if [ -f "$d/iso-name" ]; then
-    tr -d '\r\n' <"$d/iso-name" | trim_ws
+    printf '%s\n' "$(tr -d '\r\n' <"$d/iso-name" | trim_ws)"
   else
     echo "services"
   fi
