@@ -60,15 +60,24 @@ _cache_init
 
 case "$type" in
   deb)
-    if [[ "$url" == *.gz ]]; then
-      data_stream="gzip -dc"
-    else
-      data_stream="cat"
-    fi
-    _cache_fetch "$url" | $data_stream | awk -v package="$pkg" '
-      $1 == "Package:" { p = ($2 == package) }
-      p && $1 == "Version:" { print $2 }
-    ' | sort -V | tail -n1
+    # The indexes should match the repositories used by the image build. A
+    # lookup and the later package install are not atomic; a repository update
+    # between them can still make the reported artifact version differ from
+    # the version installed in the image.
+    # Accept one or more package indexes followed by the package name.
+    pkg="${!#}"
+    urls=("${@:2:$#-2}")
+    for index_url in "${urls[@]}"; do
+      case "$index_url" in
+        *.gz) data_stream="gzip -dc" ;;
+        *.xz) data_stream="xz -dc" ;;
+        *) data_stream="cat" ;;
+      esac
+      _cache_fetch "$index_url" | $data_stream | awk -v package="$pkg" '
+        $1 == "Package:" { p = ($2 == package) }
+        p && $1 == "Version:" { print $2 }
+      '
+    done | sort -V | tail -n1
     ;;
   apk)
     _cache_fetch "$url" | tar -xzO -f - APKINDEX 2>/dev/null | awk -F: -v package="$pkg" '

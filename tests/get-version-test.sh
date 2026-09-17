@@ -27,9 +27,10 @@ assert_eq() {
 }
 
 run_get_version() {
-  local type=$1 index=$2 package=$3
+  local type=$1
+  shift
   CACHE_DIR="$TMPDIR/cache" CACHE_TTL=3600 \
-    bash "$ROOT/scripts/get_version.sh" "$type" "$index" "$package"
+    bash "$ROOT/scripts/get_version.sh" "$type" "$@"
 }
 
 plain_deb() {
@@ -40,6 +41,20 @@ gzip_deb() {
   local index=$TMPDIR/Packages.gz
   gzip -c "$ROOT/tests/fixtures/debian-packages.txt" >"$index"
   assert_eq 1.10.0 "$(run_get_version deb "file://$index" demo)"
+}
+
+xz_deb() {
+  local index=$TMPDIR/Packages.xz
+  xz -c "$ROOT/tests/fixtures/debian-packages.txt" >"$index"
+  assert_eq 1.10.0 "$(run_get_version deb "file://$index" demo)"
+}
+
+multiple_deb_indexes() {
+  local newer=$TMPDIR/Packages-newer
+  printf 'Package: demo\nVersion: 2.0\n' >"$newer"
+  assert_eq 2.0 "$(run_get_version deb \
+    "file://$ROOT/tests/fixtures/debian-packages.txt" \
+    "file://$newer" demo)"
 }
 
 apk() {
@@ -83,6 +98,8 @@ failed_fetch_not_cached() {
 
 run_case 'Debian plain index selects highest version' plain_deb
 run_case 'Debian gzip index selects highest version' gzip_deb
+run_case 'Debian xz index selects highest version' xz_deb
+run_case 'multiple Debian indexes select highest version' multiple_deb_indexes
 run_case 'Alpine index selects highest version' apk
 run_case 'package names match exactly' package_boundary
 run_case 'missing package returns no version' missing_package
