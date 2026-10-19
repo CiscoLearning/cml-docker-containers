@@ -74,8 +74,10 @@ configuration:
           # Can map a volume with www data into container so that Nginx can use
           # it. By default, only type=volume is allowed, see
           # /etc/default/docker-shim.env
-          # Note: Volumes must exist to be usable and can be created via
-          # "docker volume create wwwdata" where wwwdata is the name
+          # Note: Use source=<name> below; docker-shim scopes volumes to the lab
+          # by prefixing the name with the lab ID. Docker creates the volume on
+          # first use if it does not already exist. Only type, source, target,
+          # readonly, and tmpfs-* options are accepted in this file.
           #
           # type=volume,source=wwwdata,target=/usr/share/nginx/html
         editable: true
@@ -89,6 +91,7 @@ device:
     has_loopback_zero: false
     default_count: 1
     serial_ports: 2
+    default_console: 1
 boot:
   timeout: 30
   completed:
