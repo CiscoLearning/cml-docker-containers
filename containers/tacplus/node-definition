@@ -83,6 +83,7 @@ device:
       - eth2
       - eth3
     serial_ports: 2
+    default_console: 1
 inherited:
   image:
     ram: true
@@ -112,6 +113,8 @@ boot:
   timeout: 30
   completed:
     - READY
+pyats:
+  os: linux
 ui:
   description: |
     TACACS+

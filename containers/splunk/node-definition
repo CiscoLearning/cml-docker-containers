@@ -70,10 +70,13 @@ device:
     has_loopback_zero: false
     default_count: 1
     serial_ports: 2
+    default_console: 1
 boot:
   timeout: 60
   completed:
     - Ansible playbook complete
+pyats:
+  os: linux
 ui:
   description: |
     Splunk Enterprise

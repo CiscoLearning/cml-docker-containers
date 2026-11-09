@@ -74,8 +74,10 @@ configuration:
           # Can map a volume with signatures into container so that Snort can
           # use them. By default, only type=volume is allowed, see
           # /etc/default/docker-shim.env
-          # Note: Volumes must exist to be usable and can be created via
-          # "docker volume create snortdata" where snortdata is the name
+          # Note: Use source=<name> below; docker-shim scopes volumes to the lab
+          # by prefixing the name with the lab ID. Docker creates the volume on
+          # first use if it does not already exist. Only type, source, target,
+          # readonly, and tmpfs-* options are accepted in this file.
           #
           # type=volume,source=snortdata,target=/wherever
         editable: true
