@@ -1,3 +1,31 @@
+refplat-images-docker (0.3.2) unstable; urgency=medium
+
+  * Container and node-definition updates
+    - Align Docker node definitions with CML 2.11 test_data keepers:
+      add default consoles and Linux pyATS metadata, update boot markers,
+      and adjust volume guidance
+    - Update XRd resources, driver, boot handling, and pyATS series
+    - Export the XRd tag to match the runtime image name
+    - Disable lab bootstrap on Docker refplat nodes
+    - Remove unnecessary Docker capabilities and Splunk privileged mode
+    - Add XRd writable_resolv_conf support
+    - Add initial IPFIXcol2 integration investigation documentation
+
+  * Package and build updates
+    - Align Debian package metadata with image repositories
+    - Track Debian trixie updates and security package indexes
+    - Update tac_plus to 4.0.4-32
+    - Improve image reference handling for modules with different runtime names
+
+  * Resolver, CI, and test updates
+    - Resolve package versions across multiple Debian indexes
+    - Resolve aliases when finding the latest nginx version
+    - Fix ISO inventory grouping and pin scan tooling
+    - Add shell tests and fixtures for image and package version resolution
+    - Add Makefile format, lint, and test targets
+
+ -- Ralph Schmieder <rschmied@cisco.com>  Thu, 12 Nov 2026 10:42:28 -0500
+
 refplat-images-docker (0.3.1) unstable; urgency=medium
 
   * Drop netflow container (no viable upstream since Buster)
